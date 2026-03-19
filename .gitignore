@@ -1,3 +1,5 @@
 node_modules/
 .DS_Store
 *.log
+.mcpregistry_github_token
+.mcpregistry_registry_token

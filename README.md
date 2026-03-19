@@ -4,6 +4,8 @@
 
 [SheetsData](https://sheetsdata.com) is an MCP server that gives AI agents instant, structured access to electronic component data. One tool call returns the pinout. Another returns electrical specs. No PDFs. No uploads. No context window stuffing.
 
+> **Beta** — SheetsData is currently in public beta. APIs, pricing, and features may change. See [Disclaimer](#disclaimer) below.
+
 <p align="center">
   <a href="https://sheetsdata.com/signup">Get API Key</a> &nbsp;·&nbsp;
   <a href="https://sheetsdata.com">Website</a>
@@ -246,8 +248,24 @@ npx sheetsdata-mcp --api-key your_key
 
 ## Support
 
-- Website: [sheetsdata.com](https://sheetsdata.com)
+- Email: [support@octoco.ltd](mailto:support@octoco.ltd)
 - Issues: [github.com/octoco-ltd/sheetsdata-mcp/issues](https://github.com/octoco-ltd/sheetsdata-mcp/issues)
+- Website: [sheetsdata.com](https://sheetsdata.com)
+
+## Disclaimer
+
+SheetsData is currently in **public beta**. Data is extracted from publicly available manufacturer datasheets using automated tools including AI. It may contain errors, omissions, or inaccuracies.
+
+**SheetsData and Octoco Ltd provide this data on an "as is" basis and make no warranties, express or implied, regarding the accuracy, completeness, or fitness for any particular purpose.** Always verify critical specifications against the official manufacturer datasheet before making design, purchasing, or manufacturing decisions.
+
+By using this service, you acknowledge that:
+
+- Extracted data may differ from the original manufacturer datasheet
+- SheetsData is not a substitute for reviewing official documentation
+- Octoco Ltd is not liable for any damages, losses, or design failures arising from the use of this data
+- Features, APIs, and pricing are subject to change during the beta period
+
+For terms of use, see [sheetsdata.com/terms](https://sheetsdata.com/terms).
 
 ## License
 
