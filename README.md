@@ -27,7 +27,7 @@ Agent: find_alternative("TPS54302", constraints="in_stock,jlcpcb")
 → MP2315, TPS54331 ranked by package/spec match
 ```
 
-The agent never sees a PDF. The engineer never uploads one.
+The agent never sees a PDF. Engineers can optionally upload proprietary datasheets for private parts.
 
 ## Tools
 
