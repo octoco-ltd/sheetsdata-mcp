@@ -244,15 +244,6 @@ npx sheetsdata-mcp --api-key your_key
 6. compare_parts       → Side-by-side comparison of finalists
 ```
 
-## Data Sources
-
-- **JLCPCB** — 900K+ parts with stock and pricing
-- **Mouser** — Full catalog via REST API
-- **DigiKey** — Full catalog via OAuth2 API
-- **Nexar / Octopart** — Aggregated datasheet URLs and metadata
-
-Datasheets are extracted from manufacturer PDFs using GPU-accelerated OCR (Marker on Modal A10G), then structured by AI (Gemini Flash summaries, Claude Haiku pinout extraction, OpenAI embeddings for semantic search).
-
 ## Support
 
 - Website: [sheetsdata.com](https://sheetsdata.com)
