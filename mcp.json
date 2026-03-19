@@ -1,0 +1,91 @@
+{
+  "name": "sheetsdata",
+  "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
+  "version": "1.0.0",
+  "author": "Octoco Ltd",
+  "homepage": "https://sheetsdata.com",
+  "repository": "https://github.com/octoco-ltd/sheetsdata-mcp",
+  "license": "MIT",
+  "transport": {
+    "type": "http",
+    "url": "https://mcp.sheetsdata.com/mcp"
+  },
+  "authentication": {
+    "type": "bearer",
+    "instructions": "Get your API key at https://sheetsdata.com/dashboard/keys"
+  },
+  "tools": [
+    {
+      "name": "search_parts",
+      "description": "Search for electronic components by part number or keyword across multiple distributors. Returns merged results with pricing and stock."
+    },
+    {
+      "name": "search_datasheets",
+      "description": "Semantic search across all extracted datasheets using natural language queries."
+    },
+    {
+      "name": "prefetch_datasheets",
+      "description": "Batch warm-up extraction for up to 20 parts. Fire-and-forget to reduce wait times."
+    },
+    {
+      "name": "check_extraction_status",
+      "description": "Poll extraction progress after prefetch or read_datasheet."
+    },
+    {
+      "name": "get_part_details",
+      "description": "Full component details by MPN — pricing, stock, parameters from all providers."
+    },
+    {
+      "name": "read_datasheet",
+      "description": "Extract structured datasheet sections (summary, pinout, electrical, package) or semantic search within a datasheet."
+    },
+    {
+      "name": "compare_parts",
+      "description": "Compare 2-5 parts side by side with merged provider data."
+    },
+    {
+      "name": "check_design_fit",
+      "description": "Validate a part against operating conditions. Returns PASS/FAIL/WARNING per parameter."
+    },
+    {
+      "name": "find_alternative",
+      "description": "Find alternative/substitute components with similar specs, same package, or compatible pinout."
+    },
+    {
+      "name": "analyze_image",
+      "description": "Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams."
+    }
+  ],
+  "prompts": [
+    {
+      "name": "component-selection",
+      "description": "Walk through selecting a component: define requirements, search candidates, compare specs, validate design fit."
+    },
+    {
+      "name": "bom-review",
+      "description": "Review a bill of materials: look up each part, check stock and lifecycle, flag risks, suggest alternatives."
+    },
+    {
+      "name": "datasheet-deep-dive",
+      "description": "Deep-dive into a specific part: summarize, extract pinout, electrical specs, absolute max ratings, and application circuit."
+    },
+    {
+      "name": "design-validation",
+      "description": "Validate a design: check each component against operating conditions, flag out-of-spec parameters."
+    },
+    {
+      "name": "second-source",
+      "description": "Find second-source alternatives for a part: match package, specs, and availability across providers."
+    }
+  ],
+  "resources": [
+    {
+      "uri": "sheetsdata://providers",
+      "description": "List of active component data providers and their current status."
+    },
+    {
+      "uri": "sheetsdata://workflow",
+      "description": "Recommended tool workflow for component selection."
+    }
+  ]
+}
