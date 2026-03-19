@@ -1,6 +1,7 @@
 {
   "name": "sheetsdata-mcp",
   "version": "1.0.0",
+  "mcpName": "sheetsdata",
   "description": "MCP server for electronic component datasheets — specs, pinouts, package data on demand. No PDFs required.",
   "keywords": [
     "mcp",
