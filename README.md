@@ -6,7 +6,6 @@
 
 <p align="center">
   <a href="https://sheetsdata.com/signup">Get API Key</a> &nbsp;·&nbsp;
-  <a href="https://sheetsdata.com/pricing">Pricing</a> &nbsp;·&nbsp;
   <a href="https://sheetsdata.com">Website</a>
 </p>
 
@@ -30,25 +29,18 @@ The agent never sees a PDF. The engineer never uploads one.
 
 ## Tools
 
-### Free
-
 | Tool | Description |
 |------|-------------|
 | `search_parts` | Search by part number or keyword across JLCPCB, Mouser, DigiKey. Results merged by MPN with pricing and stock. |
 | `search_datasheets` | Semantic search across all extracted datasheets. Natural language queries like "low-noise LDO with PSRR above 70dB". |
 | `prefetch_datasheets` | Batch warm-up extraction for up to 20 parts. Fire-and-forget — reduces wait times. |
 | `check_extraction_status` | Poll extraction progress after prefetch or read_datasheet. |
-
-### Paid
-
-| Tool | Cost | Description |
-|------|------|-------------|
-| `get_part_details` | 4¢ | Full component details — pricing, stock, parameters from all providers. |
-| `read_datasheet` | 6¢ | Structured datasheet sections (summary, pinout, electrical, abs_max, package) or semantic search within a datasheet. |
-| `compare_parts` | 10¢ | Compare 2–5 parts side by side with merged provider data. |
-| `check_design_fit` | 10¢ | Validate operating conditions against datasheet limits. PASS/FAIL/WARNING per parameter. |
-| `find_alternative` | 10¢ | Find alternative/substitute components by specs, package, or availability. |
-| `analyze_image` | 8¢ | Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams. |
+| `get_part_details` | Full component details — pricing, stock, parameters from all providers. |
+| `read_datasheet` | Structured datasheet sections (summary, pinout, electrical, abs_max, package) or semantic search within a datasheet. |
+| `compare_parts` | Compare 2–5 parts side by side with merged provider data. |
+| `check_design_fit` | Validate operating conditions against datasheet limits. PASS/FAIL/WARNING per parameter. |
+| `find_alternative` | Find alternative/substitute components by specs, package, or availability. |
+| `analyze_image` | Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams. |
 
 ## Install
 
