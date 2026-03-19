@@ -42,6 +42,27 @@ The agent never sees a PDF. The engineer never uploads one.
 | `find_alternative` | Find alternative/substitute components by specs, package, or availability. |
 | `analyze_image` | Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams. |
 
+## Prompts
+
+Built-in prompt templates that guide the agent through common hardware engineering tasks:
+
+| Prompt | Description |
+|--------|-------------|
+| `component-selection` | Walk through selecting a component: define requirements, search candidates, compare specs, validate design fit. |
+| `bom-review` | Review a bill of materials: look up each part, check stock and lifecycle, flag risks, suggest alternatives. |
+| `datasheet-deep-dive` | Deep-dive into a specific part: summarize, extract pinout, electrical specs, absolute max ratings, and application circuit. |
+| `design-validation` | Validate a design: check each component against operating conditions, flag out-of-spec parameters. |
+| `second-source` | Find second-source alternatives for a part: match package, specs, and availability across providers. |
+
+## Resources
+
+Data the server exposes for agent context:
+
+| Resource | Description |
+|----------|-------------|
+| `sheetsdata://providers` | List of active component data providers (JLCPCB, Mouser, DigiKey, Nexar) and their current status. |
+| `sheetsdata://workflow` | Recommended tool workflow for component selection — search, evaluate, read datasheet, validate, compare. |
+
 ## Install
 
 ### Claude Desktop
