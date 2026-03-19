@@ -1,0 +1,33 @@
+{
+  "name": "sheetsdata-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for electronic component datasheets — specs, pinouts, package data on demand. No PDFs required.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "electronics",
+    "datasheets",
+    "components",
+    "embedded",
+    "hardware",
+    "pcb",
+    "eda"
+  ],
+  "homepage": "https://sheetsdata.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/octoco-ltd/sheetsdata-mcp"
+  },
+  "license": "MIT",
+  "author": "Octoco Ltd",
+  "type": "module",
+  "bin": {
+    "sheetsdata-mcp": "./bin/cli.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "dependencies": {
+    "mcp-remote": "^0.1.0"
+  }
+}

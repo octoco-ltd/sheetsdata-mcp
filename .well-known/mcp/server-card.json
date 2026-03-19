@@ -1,0 +1,58 @@
+{
+  "name": "SheetsData",
+  "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
+  "url": "https://mcp.sheetsdata.com/mcp",
+  "transport": "streamable-http",
+  "authentication": {
+    "type": "bearer",
+    "instructions": "Get your API key at https://sheetsdata.com/dashboard/keys"
+  },
+  "tools": [
+    {
+      "name": "search_parts",
+      "description": "Search for electronic components by part number, description, or keyword across JLCPCB, Mouser, and DigiKey."
+    },
+    {
+      "name": "search_datasheets",
+      "description": "Semantic search across all extracted datasheets using natural language queries."
+    },
+    {
+      "name": "get_part_details",
+      "description": "Full component details by MPN — pricing, stock, parameters from all providers."
+    },
+    {
+      "name": "read_datasheet",
+      "description": "Extract structured datasheet sections (summary, pinout, electrical, package) or semantic search within a datasheet."
+    },
+    {
+      "name": "compare_parts",
+      "description": "Compare 2-5 parts side by side with merged provider data."
+    },
+    {
+      "name": "check_design_fit",
+      "description": "Validate a part against operating conditions. Returns PASS/FAIL/WARNING per parameter."
+    },
+    {
+      "name": "find_alternative",
+      "description": "Find alternative/substitute components with similar specs, same package, or compatible pinout."
+    },
+    {
+      "name": "analyze_image",
+      "description": "Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams."
+    },
+    {
+      "name": "prefetch_datasheets",
+      "description": "Batch warm-up extraction for up to 20 parts. Fire-and-forget."
+    },
+    {
+      "name": "check_extraction_status",
+      "description": "Poll extraction progress after prefetch or read_datasheet."
+    }
+  ],
+  "links": {
+    "homepage": "https://sheetsdata.com",
+    "pricing": "https://sheetsdata.com/pricing",
+    "documentation": "https://github.com/octoco-ltd/sheetsdata-mcp",
+    "signup": "https://sheetsdata.com/signup"
+  }
+}
