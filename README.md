@@ -1,5 +1,7 @@
 # SheetsData MCP
 
+[![MCP Badge](https://lobehub.com/badge/mcp/octoco-ltd-sheetsdata-mcp)](https://lobehub.com/mcp/octoco-ltd-sheetsdata-mcp)
+
 **Electronic component datasheets for AI agents** — specs, pinouts, package data on demand. No PDFs required.
 
 [SheetsData](https://sheetsdata.com) is an MCP server that gives AI agents instant, structured access to electronic component data. One tool call returns the pinout. Another returns electrical specs. No PDFs. No uploads. No context window stuffing.
