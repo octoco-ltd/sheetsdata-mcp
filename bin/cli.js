@@ -29,28 +29,28 @@ if (keyIdx !== -1 && process.argv[keyIdx + 1]) {
 
 if (!apiKey) {
   console.error(
-    "Error: No API key provided.\n\n" +
-    "Set SHEETSDATA_API_KEY environment variable or pass --api-key <key>\n\n" +
-    "Get your API key at: https://sheetsdata.com/dashboard/keys"
+    "Warning: No API key provided. Tool calls will fail with authentication errors.\n" +
+    "Set SHEETSDATA_API_KEY environment variable or pass --api-key <key>\n" +
+    "Get your API key at: https://sheetsdata.com/dashboard/keys\n"
   );
-  process.exit(1);
 }
 
 // Build the URL with auth header
-const headerFlag = `Authorization: Bearer ${apiKey}`;
+const headerFlag = apiKey ? `Authorization: Bearer ${apiKey}` : "";
 
 // Resolve mcp-remote binary
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const mcpRemoteBin = join(__dirname, "..", "node_modules", ".bin", "mcp-remote");
 
-const child = spawn(
-  "npx",
-  ["-y", "mcp-remote", MCP_URL, "--header", headerFlag],
-  {
-    stdio: "inherit",
-    env: { ...process.env },
-  }
-);
+const args = ["-y", "mcp-remote", MCP_URL];
+if (headerFlag) {
+  args.push("--header", headerFlag);
+}
+
+const child = spawn("npx", args, {
+  stdio: "inherit",
+  env: { ...process.env },
+});
 
 child.on("exit", (code) => process.exit(code ?? 0));
 child.on("error", (err) => {

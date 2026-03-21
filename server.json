@@ -6,12 +6,12 @@
     "url": "https://github.com/octoco-ltd/sheetsdata-mcp",
     "source": "github"
   },
-  "version": "1.0.1",
+  "version": "1.0.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@sheetsdata/mcp",
-      "version": "1.0.1",
+      "version": "1.0.3",
       "transport": {
         "type": "stdio"
       },
