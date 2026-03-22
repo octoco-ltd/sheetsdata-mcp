@@ -18,20 +18,20 @@
 ## Demo
 
 ```
-Agent: search_parts("buck converter 3A 28V")
-→ TPS54302, LM2596, MP2315 with stock & pricing from JLCPCB, Mouser, DigiKey
-
 Agent: read_datasheet("TPS54302", section="pinout")
 → Pin table: BOOT(6), EN(5), FB(4), GND(1), SW(2), VIN(3)
 
 Agent: check_design_fit("TPS54302", input_voltage=12, output_current=2)
 → PASS — all parameters within datasheet limits
 
-Agent: find_alternative("TPS54302", constraints="in_stock,jlcpcb")
+Agent: "What's the maximum SPI clock frequency for the STM32G030?"
+→ Uses read_datasheet to find electrical specs — returns 32 MHz
+
+Agent: find_alternative("TPS54302", constraints="in_stock")
 → MP2315, TPS54331 ranked by package/spec match
 ```
 
-The agent never sees a PDF. Engineers can optionally upload proprietary datasheets for private parts.
+The agent never sees a PDF. The engineer never uploads one.
 
 ## Tools
 
