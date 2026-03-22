@@ -37,13 +37,13 @@ The agent never sees a PDF. The engineer never uploads one.
 
 | Tool | Description |
 |------|-------------|
-| `search_parts` | Search by part number or keyword across JLCPCB, Mouser, DigiKey. Results merged by MPN with pricing and stock. |
+| `search_parts` | Search for components by part number or keyword. Results merged by MPN with pricing and stock. |
 | `search_datasheets` | Semantic search across all extracted datasheets. Natural language queries like "low-noise LDO with PSRR above 70dB". |
 | `prefetch_datasheets` | Batch warm-up extraction for up to 20 parts. Fire-and-forget — reduces wait times. |
 | `check_extraction_status` | Poll extraction progress after prefetch or read_datasheet. |
-| `get_part_details` | Full component details — pricing, stock, parameters from all providers. |
+| `get_part_details` | Full component details — specs, parameters, pricing, and stock. |
 | `read_datasheet` | Structured datasheet sections (summary, pinout, electrical, abs_max, package) or semantic search within a datasheet. |
-| `compare_parts` | Compare 2–5 parts side by side with merged provider data. |
+| `compare_parts` | Compare 2–5 parts side by side on real datasheet specs. |
 | `check_design_fit` | Validate operating conditions against datasheet limits. PASS/FAIL/WARNING per parameter. |
 | `find_alternative` | Find alternative/substitute components by specs, package, or availability. |
 | `analyze_image` | Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams. |
@@ -66,7 +66,6 @@ Data the server exposes for agent context:
 
 | Resource | Description |
 |----------|-------------|
-| `sheetsdata://providers` | List of active component data providers (JLCPCB, Mouser, DigiKey, Nexar) and their current status. |
 | `sheetsdata://workflow` | Recommended tool workflow for component selection — search, evaluate, read datasheet, validate, compare. |
 
 ## Install

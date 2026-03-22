@@ -1,7 +1,7 @@
 {
   "name": "sheetsdata",
   "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "author": "Octoco Ltd",
   "homepage": "https://sheetsdata.com",
   "repository": "https://github.com/octoco-ltd/sheetsdata-mcp",
@@ -79,10 +79,6 @@
     }
   ],
   "resources": [
-    {
-      "uri": "sheetsdata://providers",
-      "description": "List of active component data providers and their current status."
-    },
     {
       "uri": "sheetsdata://workflow",
       "description": "Recommended tool workflow for component selection."
