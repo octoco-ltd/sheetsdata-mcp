@@ -1,4 +1,9 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
-  "maintainers": ["heinrich321"]
+  "maintainers": ["heinrich321"],
+  "related_servers": [
+    "horw/esp-mcp",
+    "adancurusul/embedded-debugger-mcp",
+    "kukapay/modbus-mcp"
+  ]
 }
