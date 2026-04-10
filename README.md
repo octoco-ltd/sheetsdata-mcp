@@ -96,22 +96,21 @@ For everything else, copy the snippet from the right section below.
 
 ### Claude Desktop
 
-Open Claude Desktop → Settings → Developer → **Edit Config**. Add this to `mcpServers`:
+Open Claude Desktop → **Settings** → **Connectors** → **Add custom connector** at the bottom of the list.
 
-```json
-{
-  "mcpServers": {
-    "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp"
-    }
-  }
-}
-```
+| Field | Value |
+|---|---|
+| Name | `SheetsData` |
+| URL | `https://mcp.sheetsdata.com/mcp` |
 
-Restart Claude Desktop, then click the hammer icon → **SheetsData** → **Connect**. A browser tab opens for the SheetsData consent screen. That's it.
+Click **Add**. Claude Desktop will open a browser tab to the SheetsData consent screen — pick the org to authorize, and you're done. Tools appear in Claude immediately.
+
+> **Note**: The `claude_desktop_config.json` file does **not** support the OAuth flow on Claude Desktop. The Connectors UI is the right path for OAuth — only fall back to the JSON config if you want to use an API key instead.
 
 <details>
-<summary>Use an API key instead</summary>
+<summary>Use an API key instead (via JSON config)</summary>
+
+Open Claude Desktop → Settings → Developer → **Edit Config**, then add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -126,7 +125,7 @@ Restart Claude Desktop, then click the hammer icon → **SheetsData** → **Conn
 }
 ```
 
-Get a key from [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys).
+Restart Claude Desktop. Get a key from [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys).
 </details>
 
 ### Claude Code
