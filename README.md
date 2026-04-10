@@ -68,22 +68,35 @@ Data the server exposes for agent context:
 |----------|-------------|
 | `sheetsdata://workflow` | Recommended tool workflow for component selection — search, evaluate, read datasheet, validate, compare. |
 
-## Authentication
+## Authentication — pick OAuth, fall back to API key
 
-SheetsData supports two authentication methods:
+SheetsData supports two auth paths. Use whichever works best for your client; both bill against the same org.
 
-1. **OAuth 2.0 (recommended)** — Click "Connect", log in with your SheetsData account, done. Modern MCP clients (Claude Desktop, Cursor, Windsurf, VS Code, etc.) discover OAuth automatically via [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) / [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) metadata at `https://mcp.sheetsdata.com/.well-known/oauth-authorization-server`. PKCE is mandatory; dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) is enabled.
-2. **API key (Bearer token)** — Generate a key at the [API Keys dashboard](https://sheetsdata.com/dashboard/keys) and pass it as a Bearer header. Use this for CI/CD, scripts, headless agents, or clients that don't yet speak the MCP OAuth flow.
+| | **OAuth 2.0** | **API key** |
+|---|---|---|
+| Best for | Interactive MCP clients (Claude Desktop, Cursor, etc.) | CI, scripts, headless agents, or clients that don't speak MCP OAuth |
+| What you do | Click *Connect* in your client → log in here → done | Generate a key in the dashboard, paste as a `Bearer` header |
+| Setup | Just paste a URL | Paste a URL + a header |
+| Discovery | Automatic via [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) / [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) | n/a |
+| Spec compliance | PKCE-mandatory, dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), refresh-token rotation | RFC 6750 Bearer |
+| Revoke | Per-client, from `/dashboard/keys` | Delete the key |
 
-The OAuth and API key flows resolve to the same per-organization billing and rate limits.
+> **Recommended:** OAuth. It's a single URL paste, no copy-pasting secrets, and you can yank a connected app from the dashboard at any time.
+
+## Quickest paths (one-click install)
+
+If you use **Cursor** or **VS Code** you can install with a single click — the editor will pre-fill the SheetsData server config and prompt you to authorize on first use.
+
+[![Install in Cursor](https://img.shields.io/badge/Install_in_Cursor-One_click-000?style=for-the-badge&logo=cursor)](cursor://anysphere.cursor-deeplink/mcp/install?name=SheetsData&config=eyJ1cmwiOiJodHRwczovL21jcC5zaGVldHNkYXRhLmNvbS9tY3AifQ==)
+[![Install in VS Code](https://img.shields.io/badge/Install_in_VS_Code-One_click-007ACC?style=for-the-badge&logo=visualstudiocode)](vscode:mcp/install?%7B%22name%22%3A%22sheetsdata%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.sheetsdata.com/mcp%22%7D)
+
+For everything else, copy the snippet from the right section below.
 
 ## Install
 
 ### Claude Desktop
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-**OAuth (recommended):**
+Open Claude Desktop → Settings → Developer → **Edit Config**. Add this to `mcpServers`:
 
 ```json
 {
@@ -95,9 +108,10 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-Claude Desktop will open a browser window for you to log in and authorize on first use.
+Restart Claude Desktop, then click the hammer icon → **SheetsData** → **Connect**. A browser tab opens for the SheetsData consent screen. That's it.
 
-**API key:**
+<details>
+<summary>Use an API key instead</summary>
 
 ```json
 {
@@ -112,15 +126,19 @@ Claude Desktop will open a browser window for you to log in and authorize on fir
 }
 ```
 
-### Claude Code
+Get a key from [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys).
+</details>
 
-OAuth (recommended):
+### Claude Code
 
 ```bash
 claude mcp add sheetsdata --transport http "https://mcp.sheetsdata.com/mcp"
 ```
 
-API key:
+Claude Code will print a one-time OAuth URL — open it, authorize, done.
+
+<details>
+<summary>Use an API key instead</summary>
 
 ```bash
 claude mcp add sheetsdata \
@@ -128,10 +146,26 @@ claude mcp add sheetsdata \
   "https://mcp.sheetsdata.com/mcp" \
   --header "Authorization: Bearer YOUR_API_KEY"
 ```
+</details>
 
 ### Cursor
 
-Add to `.cursor/mcp.json` in your project root:
+Click the [**Install in Cursor**](cursor://anysphere.cursor-deeplink/mcp/install?name=SheetsData&config=eyJ1cmwiOiJodHRwczovL21jcC5zaGVldHNkYXRhLmNvbS9tY3AifQ==) badge above, *or* add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+Restart Cursor → MCP panel → **SheetsData** → **Connect**.
+
+<details>
+<summary>Use an API key instead</summary>
 
 ```json
 {
@@ -145,28 +179,42 @@ Add to `.cursor/mcp.json` in your project root:
   }
 }
 ```
-
-Or use the deep link: `cursor://anysphere.cursor-deeplink/mcp/install?name=SheetsData&config=...`
+</details>
 
 ### VS Code (GitHub Copilot)
 
-Add to your VS Code `settings.json`:
+Click the [**Install in VS Code**](vscode:mcp/install?%7B%22name%22%3A%22sheetsdata%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.sheetsdata.com/mcp%22%7D) badge above, *or* add to `.vscode/mcp.json`:
 
 ```json
 {
-  "mcp": {
-    "servers": {
-      "sheetsdata": {
-        "type": "http",
-        "url": "https://mcp.sheetsdata.com/mcp",
-        "headers": {
-          "Authorization": "Bearer YOUR_API_KEY"
-        }
+  "servers": {
+    "sheetsdata": {
+      "type": "http",
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+VS Code will prompt you to authorize on first use.
+
+<details>
+<summary>Use an API key instead</summary>
+
+```json
+{
+  "servers": {
+    "sheetsdata": {
+      "type": "http",
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
       }
     }
   }
 }
 ```
+</details>
 
 ### Windsurf
 
@@ -176,6 +224,21 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 {
   "mcpServers": {
     "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+Restart Windsurf and click Connect on the SheetsData entry.
+
+<details>
+<summary>Use an API key instead</summary>
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
       "url": "https://mcp.sheetsdata.com/mcp",
       "headers": {
         "Authorization": "Bearer YOUR_API_KEY"
@@ -184,10 +247,46 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
   }
 }
 ```
+</details>
+
+### Amp (Sourcegraph)
+
+Add to your Amp settings:
+
+```json
+{
+  "amp.mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+Amp will run the OAuth flow on first use.
+
+<details>
+<summary>Use an API key instead</summary>
+
+```json
+{
+  "amp.mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+</details>
 
 ### Cline
 
-In VS Code, open Cline MCP Settings and add:
+> Cline doesn't yet support the MCP OAuth flow — use an API key.
+
+In VS Code, open Cline → gear icon → **MCP Servers**:
 
 ```json
 {
@@ -203,24 +302,9 @@ In VS Code, open Cline MCP Settings and add:
 }
 ```
 
-### Amp (Sourcegraph)
-
-Add to Amp settings:
-
-```json
-{
-  "amp.mcpServers": {
-    "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
-      }
-    }
-  }
-}
-```
-
 ### Zed
+
+> Zed doesn't yet support the MCP OAuth flow — use an API key.
 
 Add to Zed `settings.json`:
 
@@ -241,6 +325,8 @@ Add to Zed `settings.json`:
 
 ### Continue.dev
 
+> Continue doesn't yet support the MCP OAuth flow — use an API key.
+
 Add to `~/.continue/config.yaml`:
 
 ```yaml
@@ -256,20 +342,16 @@ mcpServers:
 For clients that only support stdio transport:
 
 ```bash
-SHEETSDATA_API_KEY=your_key npx sheetsdata-mcp
+SHEETSDATA_API_KEY=your_key npx @sheetsdata/mcp
 ```
 
-Or with the `--api-key` flag:
+## Need an API key?
 
-```bash
-npx sheetsdata-mcp --api-key your_key
-```
-
-## Get Your API Key
-
-1. Sign up at [sheetsdata.com/signup](https://sheetsdata.com/signup)
+1. Sign up at [sheetsdata.com/signup](https://sheetsdata.com/signup) (30 seconds, free credits)
 2. Go to [Dashboard → API Keys](https://sheetsdata.com/dashboard/keys)
-3. Create a new key and paste it into the config above
+3. Click **Create key**, copy the token, paste it into your config
+
+You can also manage OAuth-authorized apps from the same page — see who has connected, when, and revoke any of them with one click.
 
 ## Recommended Workflow
 
