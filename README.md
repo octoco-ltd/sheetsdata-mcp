@@ -68,11 +68,36 @@ Data the server exposes for agent context:
 |----------|-------------|
 | `sheetsdata://workflow` | Recommended tool workflow for component selection — search, evaluate, read datasheet, validate, compare. |
 
+## Authentication
+
+SheetsData supports two authentication methods:
+
+1. **OAuth 2.0 (recommended)** — Click "Connect", log in with your SheetsData account, done. Modern MCP clients (Claude Desktop, Cursor, Windsurf, VS Code, etc.) discover OAuth automatically via [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) / [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) metadata at `https://mcp.sheetsdata.com/.well-known/oauth-authorization-server`. PKCE is mandatory; dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) is enabled.
+2. **API key (Bearer token)** — Generate a key at the [API Keys dashboard](https://sheetsdata.com/dashboard/keys) and pass it as a Bearer header. Use this for CI/CD, scripts, headless agents, or clients that don't yet speak the MCP OAuth flow.
+
+The OAuth and API key flows resolve to the same per-organization billing and rate limits.
+
 ## Install
 
 ### Claude Desktop
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+**OAuth (recommended):**
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+Claude Desktop will open a browser window for you to log in and authorize on first use.
+
+**API key:**
 
 ```json
 {
@@ -88,6 +113,14 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 ```
 
 ### Claude Code
+
+OAuth (recommended):
+
+```bash
+claude mcp add sheetsdata --transport http "https://mcp.sheetsdata.com/mcp"
+```
+
+API key:
 
 ```bash
 claude mcp add sheetsdata \
