@@ -4,10 +4,12 @@
  * SheetsData MCP — thin proxy to the hosted MCP server.
  *
  * Usage:
- *   npx sheetsdata-mcp
+ *   npx sheetsdata-mcp                        # OAuth (browser login)
+ *   npx sheetsdata-mcp --api-key <key>        # API key
+ *   SHEETSDATA_API_KEY=<key> npx sheetsdata-mcp
  *
- * The API key is read from the SHEETSDATA_API_KEY environment variable
- * or passed via --api-key flag.
+ * When no API key is provided, mcp-remote handles OAuth automatically —
+ * it opens a browser tab for you to authorize, then caches the token.
  *
  * This uses mcp-remote to proxy stdio ↔ Streamable HTTP so that
  * clients like Claude Desktop (which only support stdio) can connect
@@ -15,8 +17,6 @@
  */
 
 import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 
 const MCP_URL = "https://mcp.sheetsdata.com/mcp";
 
@@ -27,24 +27,15 @@ if (keyIdx !== -1 && process.argv[keyIdx + 1]) {
   apiKey = process.argv[keyIdx + 1];
 }
 
-if (!apiKey) {
-  console.error(
-    "Warning: No API key provided. Tool calls will fail with authentication errors.\n" +
-    "Set SHEETSDATA_API_KEY environment variable or pass --api-key <key>\n" +
-    "Get your API key at: https://sheetsdata.com/dashboard/keys\n"
-  );
-}
-
-// Build the URL with auth header
-const headerFlag = apiKey ? `Authorization: Bearer ${apiKey}` : "";
-
-// Resolve mcp-remote binary
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const mcpRemoteBin = join(__dirname, "..", "node_modules", ".bin", "mcp-remote");
-
 const args = ["-y", "mcp-remote", MCP_URL];
-if (headerFlag) {
-  args.push("--header", headerFlag);
+
+if (apiKey) {
+  args.push("--header", `Authorization: Bearer ${apiKey}`);
+} else {
+  console.error(
+    "No API key set — will use OAuth (a browser tab will open to authorize).\n" +
+    "To use an API key instead, set SHEETSDATA_API_KEY or pass --api-key <key>\n"
+  );
 }
 
 const child = spawn("npx", args, {

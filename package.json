@@ -1,6 +1,6 @@
 {
   "name": "@sheetsdata/mcp",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "mcpName": "io.github.octoco-ltd/sheetsdata-mcp",
   "description": "MCP server for electronic component datasheets — specs, pinouts, package data on demand. No PDFs required.",
   "keywords": [
