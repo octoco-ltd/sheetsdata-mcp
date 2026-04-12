@@ -59,6 +59,9 @@ Built-in prompt templates that guide the agent through common hardware engineeri
 | `datasheet-deep-dive` | Deep-dive into a specific part: summarize, extract pinout, electrical specs, absolute max ratings, and application circuit. |
 | `design-validation` | Validate a design: check each component against operating conditions, flag out-of-spec parameters. |
 | `second-source` | Find second-source alternatives for a part: match package, specs, and availability across providers. |
+| `interface-check` | Check electrical and protocol compatibility between two ICs on a shared bus (SPI, I2C, UART). Verifies VOH/VOL vs VIH/VIL, flags level-shifter needs, extracts protocol config (SPI mode, I2C address, pull-up values). |
+| `firmware-kickstart` | Extract register map, init sequence, and protocol details from a peripheral IC datasheet. Generates a firmware integration guide with register writes, transaction examples, and common pitfalls. |
+| `thermal-review` | Thermal and derating analysis: compare operating conditions against abs max AND recommended limits, estimate junction temperature, check SOA derating curves, flag exposed-pad requirements. |
 
 ## Resources
 
@@ -67,6 +70,8 @@ Data the server exposes for agent context:
 | Resource | Description |
 |----------|-------------|
 | `sheetsdata://workflow` | Recommended tool workflow for component selection — search, evaluate, read datasheet, validate, compare. |
+| `sheetsdata://tips/datasheet-pitfalls` | The 8 most common datasheet interpretation mistakes — abs max confusion, typical vs worst-case, thermal derating, voltage levels, I2C/SPI gotchas, decoupling, exposed pads, lifecycle risks. |
+| `sheetsdata://tips/design-review-checklist` | Hardware design review checklist covering power supply, signal interfaces, component selection, and firmware integration. |
 
 ## Authentication — pick OAuth, fall back to API key
 

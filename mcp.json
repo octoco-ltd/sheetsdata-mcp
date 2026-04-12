@@ -1,7 +1,7 @@
 {
   "name": "sheetsdata",
   "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
-  "version": "1.0.4",
+  "version": "1.2.0",
   "author": "Octoco Ltd",
   "homepage": "https://sheetsdata.com",
   "repository": "https://github.com/octoco-ltd/sheetsdata-mcp",
@@ -76,12 +76,32 @@
     {
       "name": "second-source",
       "description": "Find second-source alternatives for a part: match package, specs, and availability across providers."
+    },
+    {
+      "name": "interface-check",
+      "description": "Check electrical and protocol compatibility between two ICs on a shared bus (SPI, I2C, UART). Verifies voltage levels (VOH/VOL vs VIH/VIL), timing, pull-up requirements, and flags level-shifter needs."
+    },
+    {
+      "name": "firmware-kickstart",
+      "description": "Extract register map, initialization sequence, and protocol details from a peripheral IC datasheet. Generates a firmware integration guide with register writes, transaction examples, and common pitfalls."
+    },
+    {
+      "name": "thermal-review",
+      "description": "Thermal and derating analysis: compare operating conditions against absolute maximum AND recommended limits, estimate junction temperature from RthJA, check SOA derating curves, and flag exposed-pad requirements."
     }
   ],
   "resources": [
     {
       "uri": "sheetsdata://workflow",
       "description": "Recommended tool workflow for component selection."
+    },
+    {
+      "uri": "sheetsdata://tips/datasheet-pitfalls",
+      "description": "The 8 most common datasheet interpretation mistakes: abs max confusion, typical vs worst-case, thermal derating, voltage level mismatches, I2C/SPI gotchas, decoupling, exposed pads, lifecycle risks."
+    },
+    {
+      "uri": "sheetsdata://tips/design-review-checklist",
+      "description": "Hardware design review checklist covering power supply, signal interfaces, component selection, and firmware integration."
     }
   ]
 }
