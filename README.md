@@ -47,6 +47,8 @@ The agent never sees a PDF. The engineer never uploads one.
 | `check_design_fit` | Validate operating conditions against datasheet limits. PASS/FAIL/WARNING per parameter. |
 | `find_alternative` | Find alternative/substitute components by specs, package, or availability. |
 | `analyze_image` | Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams. |
+| `request_datasheet_upload` | Request a signed URL to upload a datasheet PDF when we don't have one (`datasheet_status` = `no_source` or `unsupported`). Free — fee is only charged on confirm. |
+| `confirm_datasheet_upload` | Confirm an upload: verifies SHA-256, validates PDF, checks MPN on first page, charges the upload fee, and queues extraction. Datasheets are private to your org. |
 
 ## Prompts
 

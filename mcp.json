@@ -1,7 +1,7 @@
 {
   "name": "sheetsdata",
   "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "author": "Octoco Ltd",
   "homepage": "https://sheetsdata.com",
   "repository": "https://github.com/octoco-ltd/sheetsdata-mcp",
@@ -54,6 +54,14 @@
     {
       "name": "analyze_image",
       "description": "Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams."
+    },
+    {
+      "name": "request_datasheet_upload",
+      "description": "Request a signed URL to upload a datasheet PDF when datasheet_status is 'no_source' or 'unsupported'. Free — the 50¢ upload fee is only charged on confirm_datasheet_upload after validation. Uploads are private to your org."
+    },
+    {
+      "name": "confirm_datasheet_upload",
+      "description": "Confirm a datasheet upload started via request_datasheet_upload. Verifies SHA-256 + PDF validity + MPN on first page, then charges the upload fee and queues extraction."
     }
   ],
   "prompts": [
