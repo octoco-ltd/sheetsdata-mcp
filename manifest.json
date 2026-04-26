@@ -1,0 +1,147 @@
+{
+  "manifest_version": "0.2",
+  "dxt_version": "0.2",
+  "name": "sheetsdata",
+  "display_name": "SheetsData",
+  "version": "1.3.0",
+  "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
+  "long_description": "SheetsData gives AI agents instant, structured access to electronic component data. One tool call returns the pinout. Another returns electrical specs. No PDFs. No uploads. No context window stuffing.\n\nThis bundle proxies stdio↔Streamable HTTP so that Claude Desktop (and any MCP client that only speaks stdio) can connect to the hosted SheetsData MCP server at https://mcp.sheetsdata.com/mcp.",
+  "author": {
+    "name": "Octoco Ltd",
+    "url": "https://sheetsdata.com",
+    "email": "hello@sheetsdata.com"
+  },
+  "homepage": "https://sheetsdata.com",
+  "documentation": "https://github.com/octoco-ltd/sheetsdata-mcp",
+  "support": "https://github.com/octoco-ltd/sheetsdata-mcp/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/octoco-ltd/sheetsdata-mcp"
+  },
+  "license": "MIT",
+  "icon": "icon.png",
+  "keywords": [
+    "electronics",
+    "datasheets",
+    "components",
+    "embedded",
+    "hardware",
+    "pcb",
+    "eda",
+    "firmware",
+    "engineering"
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "SHEETSDATA_API_KEY": "${user_config.api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "API Key (optional)",
+      "description": "Paste an API key from https://sheetsdata.com/dashboard/keys for direct access. Leave blank to use OAuth — a browser tab opens the first time the server runs and stores the token locally.",
+      "required": false,
+      "sensitive": true,
+      "default": ""
+    }
+  },
+  "tools": [
+    {
+      "name": "search_parts",
+      "description": "Search for electronic components by part number or keyword across multiple distributors. Returns merged results with pricing and stock."
+    },
+    {
+      "name": "search_datasheets",
+      "description": "Semantic search across all extracted datasheets using natural language queries."
+    },
+    {
+      "name": "prefetch_datasheets",
+      "description": "Batch warm-up extraction for up to 20 parts. Fire-and-forget to reduce wait times."
+    },
+    {
+      "name": "check_extraction_status",
+      "description": "Poll extraction progress after prefetch or read_datasheet."
+    },
+    {
+      "name": "get_part_details",
+      "description": "Full component details by MPN — pricing, stock, parameters from all providers."
+    },
+    {
+      "name": "read_datasheet",
+      "description": "Extract structured datasheet sections (summary, pinout, electrical, package) or semantic search within a datasheet."
+    },
+    {
+      "name": "compare_parts",
+      "description": "Compare 2-5 parts side by side with merged provider data."
+    },
+    {
+      "name": "check_design_fit",
+      "description": "Validate a part against operating conditions. Returns PASS/FAIL/WARNING per parameter."
+    },
+    {
+      "name": "find_alternative",
+      "description": "Find alternative/substitute components with similar specs, same package, or compatible pinout."
+    },
+    {
+      "name": "analyze_image",
+      "description": "Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams."
+    },
+    {
+      "name": "request_datasheet_upload",
+      "description": "Request a signed URL to upload a datasheet PDF when datasheet_status is 'no_source' or 'unsupported'."
+    },
+    {
+      "name": "confirm_datasheet_upload",
+      "description": "Confirm a datasheet upload started via request_datasheet_upload. Verifies SHA-256 + PDF validity + MPN on first page, then charges the upload fee and queues extraction."
+    }
+  ],
+  "prompts": [
+    {
+      "name": "component-selection",
+      "description": "Walk through selecting a component: define requirements, search candidates, compare specs, validate design fit."
+    },
+    {
+      "name": "bom-review",
+      "description": "Review a bill of materials: look up each part, check stock and lifecycle, flag risks, suggest alternatives."
+    },
+    {
+      "name": "datasheet-deep-dive",
+      "description": "Deep-dive into a specific part: summarize, extract pinout, electrical specs, absolute max ratings, and application circuit."
+    },
+    {
+      "name": "design-validation",
+      "description": "Validate a design: check each component against operating conditions, flag out-of-spec parameters."
+    },
+    {
+      "name": "second-source",
+      "description": "Find second-source alternatives for a part: match package, specs, and availability across providers."
+    },
+    {
+      "name": "interface-check",
+      "description": "Check electrical and protocol compatibility between two ICs on a shared bus (SPI, I2C, UART)."
+    },
+    {
+      "name": "firmware-kickstart",
+      "description": "Extract register map, initialization sequence, and protocol details from a peripheral IC datasheet."
+    },
+    {
+      "name": "thermal-review",
+      "description": "Thermal and derating analysis: compare operating conditions against absolute maximum AND recommended limits."
+    }
+  ],
+  "tools_generated": false,
+  "prompts_generated": false
+}

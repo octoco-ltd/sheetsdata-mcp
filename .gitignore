@@ -3,3 +3,7 @@ node_modules/
 *.log
 .mcpregistry_github_token
 .mcpregistry_registry_token
+
+# Bundle build output
+dist/
+*.mcpb

@@ -1,0 +1,57 @@
+name: Release MCPB bundle
+
+# Builds the .mcpb (DXT/MCPB) bundle for one-click install in Claude
+# Desktop and attaches it to the GitHub Release that triggered the
+# workflow.  Fires on:
+#
+#   * Tag pushes (``v1.3.0``, ``v1.4.0``, …) for the canonical release
+#     path — the tag should match ``manifest.json``'s version.
+#   * Manual ``workflow_dispatch`` so a maintainer can rebuild a
+#     released bundle without retagging.
+#
+# The build script enforces that ``manifest.json`` and ``package.json``
+# share a version, so a forgotten bump fails fast in CI rather than
+# producing a mismatched .mcpb.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build + attach .mcpb
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build bundle
+        run: ./scripts/build-mcpb.sh
+
+      - name: Read version
+        id: version
+        run: |
+          v=$(node -p "require('./manifest.json').version")
+          echo "version=${v}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sheetsdata-${{ steps.version.outputs.version }}.mcpb
+          path: dist/sheetsdata-${{ steps.version.outputs.version }}.mcpb
+          if-no-files-found: error
+
+      - name: Attach to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/sheetsdata-${{ steps.version.outputs.version }}.mcpb
+          fail_on_unmatched_files: true

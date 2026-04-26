@@ -92,7 +92,11 @@ SheetsData supports two auth paths. Use whichever works best for your client; bo
 
 ## Quickest paths (one-click install)
 
-If you use **Cursor** or **VS Code** you can install with a single click — the editor will pre-fill the SheetsData server config and prompt you to authorize on first use.
+**Claude Desktop** — download the `.mcpb` bundle from the latest [GitHub release](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drag-and-drop it into the Claude Desktop window. The install dialog will let you paste an API key (or skip for OAuth) and surface every tool the bundle provides before confirming. No JSON editing.
+
+[![Download .mcpb](https://img.shields.io/badge/Download_.mcpb-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic)](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest)
+
+**Cursor** or **VS Code** — single-click install pre-fills the config and prompts to authorize on first use.
 
 [![Install in Cursor](https://img.shields.io/badge/Install_in_Cursor-One_click-000?style=for-the-badge&logo=cursor)](cursor://anysphere.cursor-deeplink/mcp/install?name=SheetsData&config=eyJ1cmwiOiJodHRwczovL21jcC5zaGVldHNkYXRhLmNvbS9tY3AifQ==)
 [![Install in VS Code](https://img.shields.io/badge/Install_in_VS_Code-One_click-007ACC?style=for-the-badge&logo=visualstudiocode)](vscode:mcp/install?%7B%22name%22%3A%22sheetsdata%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.sheetsdata.com/mcp%22%7D)
@@ -103,7 +107,9 @@ For everything else, copy the snippet from the right section below.
 
 ### Claude Desktop
 
-Open Claude Desktop → **Settings** → **Connectors** → **Add custom connector** at the bottom of the list.
+**Easiest — drag-and-drop the bundled extension.** Download the latest `sheetsdata-x.y.z.mcpb` from the [Releases page](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drop the file onto the Claude Desktop window. Claude shows the list of tools the bundle provides, asks for an optional API key (leave blank for OAuth), and installs it. No JSON editing, no `npm install`.
+
+**Or — add a remote connector via the UI.** Open Claude Desktop → **Settings** → **Connectors** → **Add custom connector** at the bottom of the list.
 
 | Field | Value |
 |---|---|
