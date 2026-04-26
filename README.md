@@ -11,7 +11,8 @@
 > **Beta** — SheetsData is currently in public beta. APIs, pricing, and features may change. See [Disclaimer](#disclaimer) below.
 
 <p align="center">
-  <a href="https://sheetsdata.com/signup">Get API Key</a> &nbsp;·&nbsp;
+  <a href="https://sheetsdata.com/signup">Sign up &amp; connect via OAuth</a> &nbsp;·&nbsp;
+  <a href="https://sheetsdata.com/dashboard/keys">API key (fallback)</a> &nbsp;·&nbsp;
   <a href="https://sheetsdata.com">Website</a>
 </p>
 
@@ -92,7 +93,7 @@ SheetsData supports two auth paths. Use whichever works best for your client; bo
 
 ## Quickest paths (one-click install)
 
-**Claude Desktop** — download the `.mcpb` bundle from the latest [GitHub release](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drag-and-drop it into the Claude Desktop window. The install dialog will let you paste an API key (or skip for OAuth) and surface every tool the bundle provides before confirming. No JSON editing.
+**Claude Desktop** — download the `.mcpb` bundle from the latest [GitHub release](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drag-and-drop it into the Claude Desktop window. The install dialog will surface every tool the bundle provides before confirming. Leave the API key field blank to use OAuth (recommended) — Claude Desktop will open a browser tab on first use to authorize. No JSON editing.
 
 [![Download .mcpb](https://img.shields.io/badge/Download_.mcpb-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic)](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest)
 
@@ -107,7 +108,7 @@ For everything else, copy the snippet from the right section below.
 
 ### Claude Desktop
 
-**Easiest — drag-and-drop the bundled extension.** Download the latest `sheetsdata-x.y.z.mcpb` from the [Releases page](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drop the file onto the Claude Desktop window. Claude shows the list of tools the bundle provides, asks for an optional API key (leave blank for OAuth), and installs it. No JSON editing, no `npm install`.
+**Easiest — drag-and-drop the bundled extension.** Download the latest `sheetsdata-x.y.z.mcpb` from the [Releases page](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drop the file onto the Claude Desktop window. Claude shows the list of tools the bundle provides and installs it. Leave the API key field blank to use OAuth (recommended) — a browser tab opens on first use to authorize. No JSON editing, no `npm install`.
 
 **Or — add a remote connector via the UI.** Open Claude Desktop → **Settings** → **Connectors** → **Add custom connector** at the bottom of the list.
 
