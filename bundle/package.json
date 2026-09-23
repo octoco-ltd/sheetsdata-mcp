@@ -1,0 +1,10 @@
+{
+  "name": "sheetsdata-mcp-bundle-runtime",
+  "version": "1.3.2",
+  "private": true,
+  "type": "module",
+  "description": "Runtime package.json for the DXT/MCPB bundle's node_modules — not published. Committed (with its lockfile) so scripts/build-mcpb.sh can `npm ci` a byte-for-byte reproducible node_modules instead of floating mcp-remote's transitive deps on every build. Keep the mcp-remote version and this file's `version` in sync with the root package.json — scripts/check-versions.mjs enforces the latter.",
+  "dependencies": {
+    "mcp-remote": "0.1.38"
+  }
+}

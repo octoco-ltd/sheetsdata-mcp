@@ -29,6 +29,10 @@
   "files": [
     "bin/"
   ],
+  "scripts": {
+    "test": "node --test",
+    "check-versions": "node scripts/check-versions.mjs"
+  },
   "dependencies": {
     "mcp-remote": "0.1.38"
   }
