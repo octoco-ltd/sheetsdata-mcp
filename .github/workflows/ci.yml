@@ -1,0 +1,54 @@
+name: CI
+
+# Fast, network-light guard rail for every PR and every push to main:
+# version-consistency, JSON validity, syntax, and the unit tests.
+# release-bundle.yml is the separate, tag-triggered workflow that
+# actually builds and publishes the .mcpb.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test + version check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check version consistency
+        run: node scripts/check-versions.mjs
+
+      - name: Validate JSON manifests
+        run: |
+          node -e "
+            const fs = require('node:fs');
+            const files = ['package.json', 'manifest.json', 'mcp.json', 'server.json', '.well-known/mcp/server-card.json'];
+            for (const f of files) {
+              JSON.parse(fs.readFileSync(f, 'utf8'));
+            }
+            console.log('All manifests are valid JSON:', files.join(', '));
+          "
+
+      - name: Syntax-check entry points
+        run: |
+          node --check bin/cli.js
+          node --check bundle/index.js
+
+      - name: Run tests
+        run: npm test

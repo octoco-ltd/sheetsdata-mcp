@@ -4,17 +4,26 @@
   "url": "https://mcp.sheetsdata.com/mcp",
   "transport": "streamable-http",
   "authentication": {
-    "type": "bearer",
-    "instructions": "Get your API key at https://sheetsdata.com/dashboard/keys"
+    "type": "oauth2",
+    "fallback": "bearer",
+    "instructions": "OAuth 2.0 is the recommended auth method — most MCP clients (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, Amp) run the flow automatically on first connect. For CI, scripts, or clients without MCP OAuth support, generate an API key at https://sheetsdata.com/dashboard/keys and pass it as a Bearer header."
   },
   "tools": [
     {
       "name": "search_parts",
-      "description": "Search for electronic components by part number, description, or keyword across JLCPCB, Mouser, and DigiKey."
+      "description": "Search for electronic components by part number or keyword across multiple distributors. Returns merged results with pricing and stock."
     },
     {
       "name": "search_datasheets",
       "description": "Semantic search across all extracted datasheets using natural language queries."
+    },
+    {
+      "name": "prefetch_datasheets",
+      "description": "Batch warm-up extraction for up to 20 parts. Fire-and-forget to reduce wait times."
+    },
+    {
+      "name": "check_extraction_status",
+      "description": "Poll extraction progress after prefetch or read_datasheet."
     },
     {
       "name": "get_part_details",
@@ -41,12 +50,12 @@
       "description": "Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams."
     },
     {
-      "name": "prefetch_datasheets",
-      "description": "Batch warm-up extraction for up to 20 parts. Fire-and-forget."
+      "name": "request_datasheet_upload",
+      "description": "Request a signed URL to upload a datasheet PDF when datasheet_status is 'no_source' or 'unsupported'. Free — the 50¢ upload fee is only charged on confirm_datasheet_upload after validation. Uploads are private to your org."
     },
     {
-      "name": "check_extraction_status",
-      "description": "Poll extraction progress after prefetch or read_datasheet."
+      "name": "confirm_datasheet_upload",
+      "description": "Confirm a datasheet upload started via request_datasheet_upload. Verifies SHA-256 + PDF validity + MPN on first page, then charges the upload fee and queues extraction."
     }
   ],
   "links": {

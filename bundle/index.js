@@ -13,6 +13,13 @@
  * mechanism — if the user pasted a key on install, we forward it as
  * an Authorization header; if blank, mcp-remote handles OAuth in a
  * browser tab on first launch.
+ *
+ * The header is passed through mcp-remote's own ``${ENV_VAR}``
+ * interpolation (a literal ``${SHEETSDATA_AUTH_HEADER}`` on argv,
+ * with the real value only in the child's env) rather than embedded
+ * directly in argv, so the key never shows up in ``ps`` output on
+ * the user's machine. See bin/cli.js for the full rationale — this
+ * bundle entry point mirrors that fix.
  */
 
 import { spawn } from "node:child_process";
@@ -44,8 +51,13 @@ if (!mcpRemoteEntry) {
 const apiKey = (process.env.SHEETSDATA_API_KEY || "").trim();
 
 const args = [mcpRemoteEntry, MCP_URL];
+const childEnv = { ...process.env };
 if (apiKey) {
-  args.push("--header", `Authorization: Bearer ${apiKey}`);
+  // No space after the colon, and a bare `${VAR}` reference as the
+  // value — mcp-remote substitutes it from the child's environment
+  // at startup, so the actual key never appears in argv/`ps`.
+  args.push("--header", "Authorization:${SHEETSDATA_AUTH_HEADER}");
+  childEnv.SHEETSDATA_AUTH_HEADER = `Bearer ${apiKey}`;
 } else {
   // mcp-remote will start its OAuth flow on first run and cache the
   // token at ~/.mcp-auth/. No environment variable change needed.
@@ -57,7 +69,7 @@ if (apiKey) {
 
 const child = spawn(process.execPath, args, {
   stdio: "inherit",
-  env: process.env,
+  env: childEnv,
 });
 
 child.on("exit", (code) => process.exit(code ?? 0));

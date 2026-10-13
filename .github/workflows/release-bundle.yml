@@ -5,13 +5,15 @@ name: Release MCPB bundle
 # workflow.  Fires on:
 #
 #   * Tag pushes (``v1.3.0``, ``v1.4.0``, …) for the canonical release
-#     path — the tag should match ``manifest.json``'s version.
+#     path — the tag must match ``manifest.json``'s version, enforced
+#     below (not just documented in a comment).
 #   * Manual ``workflow_dispatch`` so a maintainer can rebuild a
 #     released bundle without retagging.
 #
-# The build script enforces that ``manifest.json`` and ``package.json``
-# share a version, so a forgotten bump fails fast in CI rather than
-# producing a mismatched .mcpb.
+# scripts/check-versions.mjs (run inside build-mcpb.sh) enforces that
+# package.json, manifest.json, server.json and mcp.json all share a
+# version, so a forgotten bump fails fast here rather than producing
+# a mismatched .mcpb.
 
 on:
   push:
@@ -19,19 +21,34 @@ on:
       - "v*"
   workflow_dispatch:
 
+# Least privilege at the workflow level. The one step that needs to
+# write (attaching the bundle to a GitHub Release) opts back into
+# `contents: write` at the job level below.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
     name: Build + attach .mcpb
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
+
+      - name: Verify tag matches manifest version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          manifest_version="$(node -p "require('./manifest.json').version")"
+          if [ "${tag_version}" != "${manifest_version}" ]; then
+            echo "Git tag v${tag_version} does not match manifest.json version ${manifest_version}" >&2
+            exit 1
+          fi
 
       - name: Build bundle
         run: ./scripts/build-mcpb.sh
@@ -43,7 +60,7 @@ jobs:
           echo "version=${v}" >> "$GITHUB_OUTPUT"
 
       - name: Upload as workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: sheetsdata-${{ steps.version.outputs.version }}.mcpb
           path: dist/sheetsdata-${{ steps.version.outputs.version }}.mcpb
