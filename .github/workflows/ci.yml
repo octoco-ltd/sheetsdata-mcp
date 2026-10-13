@@ -1,9 +1,11 @@
 name: CI
 
-# Fast, network-light guard rail for every PR and every push to main:
-# version-consistency, JSON validity, syntax, and the unit tests.
-# release-bundle.yml is the separate, tag-triggered workflow that
-# actually builds and publishes the .mcpb.
+# Guard rail for every PR and every push to main: version consistency,
+# JSON validity, syntax, the unit tests (which include the CHANGELOG
+# entry for the current version and the npm package's file list), and
+# a full build of the Claude Desktop bundle, whose packer validates the
+# manifest. release.yml is the separate, tag-triggered workflow that
+# publishes; it runs these same checks again before it does.
 
 on:
   pull_request:
@@ -32,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Check version consistency
-        run: node scripts/check-versions.mjs
+        run: npm run check-versions
 
       - name: Validate JSON manifests
         run: |
@@ -52,3 +54,6 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Build the Claude Desktop bundle
+        run: ./scripts/build-mcpb.sh

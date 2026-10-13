@@ -1,0 +1,200 @@
+name: Release
+
+# Publishes one version to every distribution channel from its tag:
+#
+#   verify ──┬── bundle    .mcpb built and attached to the GitHub Release
+#            └── npm ───── registry    @sheetsdata/mcp, then the MCP
+#                                      Registry entry that points at it
+#
+# Push a `vX.Y.Z` tag on the commit that carries that version (see
+# RELEASING.md). Each publishing job skips a channel that already has
+# the version, so "Re-run failed jobs" finishes a partly published
+# release. A manual run on a tag does the same; on a branch it only
+# builds the bundle as a workflow artifact.
+#
+# npm and the MCP Registry are reached with GitHub OIDC (no stored
+# secrets): npm through a trusted publisher configured on npmjs.com for
+# this workflow file, the registry through `mcp-publisher login
+# github-oidc`, which may publish io.github.octoco-ltd/* from this
+# organisation's workflows.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check version fields and the tag
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            node scripts/versions.mjs check --tag "${GITHUB_REF_NAME}"
+          else
+            node scripts/versions.mjs check
+          fi
+
+      - name: Run tests
+        run: npm test
+
+      - name: Read version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "${GITHUB_OUTPUT}"
+
+      - name: Check the release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: node scripts/release-notes.mjs "${VERSION}"
+
+  bundle:
+    name: Build .mcpb + GitHub Release
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build bundle
+        run: ./scripts/build-mcpb.sh
+
+      - name: Upload as workflow artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: sheetsdata-${{ needs.verify.outputs.version }}.mcpb
+          path: dist/sheetsdata-${{ needs.verify.outputs.version }}.mcpb
+          if-no-files-found: error
+
+      - name: Create the GitHub Release, or attach the bundle to it
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          asset="dist/sheetsdata-${VERSION}.mcpb"
+          if gh release view "${TAG}" > /dev/null 2>&1; then
+            # A release that already exists keeps its notes; only the
+            # bundle is (re)attached.
+            gh release upload "${TAG}" "${asset}" --clobber
+          else
+            node scripts/release-notes.mjs "${VERSION}" > "${RUNNER_TEMP}/notes.md"
+            gh release create "${TAG}" "${asset}" --verify-tag --title "${TAG}" --notes-file "${RUNNER_TEMP}/notes.md"
+          fi
+
+  npm:
+    name: Publish to npm
+    needs: verify
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # trusted publishing and the provenance statement
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      # Trusted publishing needs npm 11.5.1 or later; Node 22 bundles 10.x.
+      - name: Install npm 11
+        run: npm install --global npm@11.20.0
+
+      # The package has no dependencies to bundle and no build or
+      # lifecycle scripts, so it is published from the checkout as is.
+      - name: Publish
+        run: |
+          published="$(npm view "@sheetsdata/mcp@${VERSION}" version 2> /dev/null || true)"
+          if [ "${published}" = "${VERSION}" ]; then
+            echo "::notice::@sheetsdata/mcp@${VERSION} is already on npm; nothing to publish."
+            exit 0
+          fi
+          npm publish --provenance --access public
+
+  registry:
+    name: Publish to the MCP Registry
+    needs: [verify, npm]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # mcp-publisher login github-oidc
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+      SERVER_NAME: io.github.octoco-ltd/sheetsdata-mcp
+      MCP_PUBLISHER_VERSION: "1.8.1"
+      # mcp-publisher_linux_amd64.tar.gz of that release, as listed in
+      # its registry_1.8.1_checksums.txt.
+      MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL --retry 3 -o "${RUNNER_TEMP}/mcp-publisher.tar.gz" \
+            "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "${MCP_PUBLISHER_SHA256}  ${RUNNER_TEMP}/mcp-publisher.tar.gz" | sha256sum --check --strict
+          tar -xzf "${RUNNER_TEMP}/mcp-publisher.tar.gz" -C "${RUNNER_TEMP}" mcp-publisher
+
+      # The registry accepts server.json only once npm serves the
+      # package version it names, with a matching mcpName.
+      - name: Wait for npm to serve the package
+        run: |
+          for _ in $(seq 1 30); do
+            mcp_name="$(npm view "@sheetsdata/mcp@${VERSION}" mcpName 2> /dev/null || true)"
+            if [ "${mcp_name}" = "${SERVER_NAME}" ]; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::npm does not serve @sheetsdata/mcp@${VERSION} with mcpName ${SERVER_NAME} after 5 minutes."
+          exit 1
+
+      - name: Publish
+        run: |
+          url="https://registry.modelcontextprotocol.io/v0.1/servers/${SERVER_NAME//\//%2F}/versions/${VERSION}"
+          if [ "$(curl -sS -o /dev/null -w '%{http_code}' "${url}")" = "200" ]; then
+            echo "::notice::${SERVER_NAME} ${VERSION} is already in the MCP Registry; nothing to publish."
+            exit 0
+          fi
+          "${RUNNER_TEMP}/mcp-publisher" login github-oidc
+          "${RUNNER_TEMP}/mcp-publisher" publish
+
+      - name: Confirm the registry serves this version
+        run: |
+          url="https://registry.modelcontextprotocol.io/v0.1/servers/${SERVER_NAME//\//%2F}/versions/${VERSION}"
+          curl -fsS --retry 5 --retry-all-errors "${url}" | jq --exit-status --arg version "${VERSION}" '.server.version == $version'
+          echo "${SERVER_NAME} ${VERSION} is in the MCP Registry."

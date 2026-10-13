@@ -1,6 +1,6 @@
 {
   "name": "@sheetsdata/mcp",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "mcpName": "io.github.octoco-ltd/sheetsdata-mcp",
   "description": "MCP server for electronic component datasheets — specs, pinouts, package data on demand. OAuth 2.0 supported (API key fallback). No PDFs required.",
   "keywords": [
@@ -18,22 +18,29 @@
   "homepage": "https://sheetsdata.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/octoco-ltd/sheetsdata-mcp"
+    "url": "git+https://github.com/octoco-ltd/sheetsdata-mcp.git"
   },
   "license": "MIT",
   "author": "Octoco Ltd",
   "type": "module",
   "bin": {
-    "sheetsdata-mcp": "./bin/cli.js"
+    "sheetsdata-mcp": "bin/cli.js"
   },
   "files": [
-    "bin/"
+    "bin/",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --test",
-    "check-versions": "node scripts/check-versions.mjs"
+    "check-versions": "node scripts/versions.mjs check",
+    "set-version": "node scripts/versions.mjs set",
+    "release-notes": "node scripts/release-notes.mjs",
+    "build-mcpb": "./scripts/build-mcpb.sh"
   },
   "dependencies": {
     "mcp-remote": "0.1.38"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "2.1.2"
   }
 }

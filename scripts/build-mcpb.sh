@@ -5,8 +5,8 @@
 # Claude Desktop to install.
 #
 # What it does:
-#   1. Checks that every version-carrying manifest agrees (see
-#      ``scripts/check-versions.mjs``) and reads the version from
+#   1. Checks that every version field agrees (see
+#      ``scripts/versions.mjs``) and reads the version from
 #      ``manifest.json``.
 #   2. Stages a clean ``dist/staging/`` directory.
 #   3. Copies the manifest, icon, and bundle entry point.
@@ -19,22 +19,30 @@
 #      *transitive* deps — express, open, undici, strict-url-sanitise
 #      — could float between builds even though mcp-remote itself was
 #      pinned. See ``bundle/package.json``.)
-#   5. Zips ``staging/`` into ``dist/sheetsdata-${VERSION}.mcpb``.
+#   5. Packs ``staging/`` into ``dist/sheetsdata-${VERSION}.mcpb``
+#      with the official ``mcpb`` CLI (pinned in devDependencies),
+#      which refuses a manifest Claude Desktop would reject (schema,
+#      icon) before it writes the archive.
 #
-# Run with:
+# Run with (after ``npm ci`` at the repo root, for ``mcpb``):
 #   ./scripts/build-mcpb.sh
 #
-# Or via the GitHub Actions workflow ``release-bundle.yml`` which
-# attaches the .mcpb to every release tag.
+# CI builds the bundle on every PR; the ``release.yml`` workflow
+# builds it again for a release tag and attaches it to the release.
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Single source of truth for "do all the version-carrying manifests
-# agree" — see scripts/check-versions.mjs for why this now covers
-# more than just manifest.json vs package.json.
-node scripts/check-versions.mjs
+# Single source of truth for "do all the version fields agree" — see
+# scripts/versions.mjs.
+node scripts/versions.mjs check
+
+MCPB="node_modules/.bin/mcpb"
+if [ ! -x "${MCPB}" ]; then
+  echo "error: ${MCPB} not found. Run \`npm ci\` at the repo root first." >&2
+  exit 1
+fi
 
 VERSION=$(node -p "require('./manifest.json').version")
 
@@ -72,10 +80,13 @@ find "${STAGE}/server/node_modules" -name "*.md" -delete 2>/dev/null || true
 find "${STAGE}/server/node_modules" -name "*.markdown" -delete 2>/dev/null || true
 find "${STAGE}/server/node_modules" -type d -name ".github" -prune -exec rm -rf {} + 2>/dev/null || true
 
-# Zip into the canonical .mcpb name. Claude Desktop accepts .dxt and
-# .mcpb interchangeably for now — the rename is for consistency with
-# the spec.
-( cd "${STAGE}" && zip -qr "../sheetsdata-${VERSION}.mcpb" . )
+# Pack with the official CLI rather than a plain zip: it validates the
+# staged manifest against the MCPB schema Claude Desktop uses, and
+# checks that the icon it names exists, before writing the archive.
+# (A hand-zipped bundle once shipped prompts without the `text` field
+# that schema requires.)
+rm -f "${ARTIFACT}"
+"${MCPB}" pack "${STAGE}" "${ARTIFACT}"
 
 # Surface the result.
 SIZE=$(du -h "${ARTIFACT}" | cut -f1)
