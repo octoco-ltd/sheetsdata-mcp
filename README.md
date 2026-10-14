@@ -119,7 +119,7 @@ For everything else, copy the snippet from the right section below.
 
 Click **Add**. Claude Desktop will open a browser tab to the SheetsData consent screen — pick the org to authorize, and you're done. Tools appear in Claude immediately.
 
-> **Note**: The `claude_desktop_config.json` file does **not** support the OAuth flow on Claude Desktop. The Connectors UI is the right path for OAuth — only fall back to the JSON config if you want to use an API key instead.
+> **Note**: `claude_desktop_config.json` only launches local (stdio) servers, so it can't hold the remote URL. Use the Connectors UI (OAuth) or the `.mcpb` bundle above; for an API key, run the `@sheetsdata/mcp` proxy from the JSON config as shown below.
 
 <details>
 <summary>Use an API key instead (via JSON config)</summary>
@@ -130,16 +130,17 @@ Open Claude Desktop → Settings → Developer → **Edit Config**, then add to 
 {
   "mcpServers": {
     "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
+      "command": "npx",
+      "args": ["-y", "@sheetsdata/mcp"],
+      "env": {
+        "SHEETSDATA_API_KEY": "YOUR_API_KEY"
       }
     }
   }
 }
 ```
 
-Restart Claude Desktop. Get a key from [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys).
+Restart Claude Desktop. Get a key from [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys). The proxy passes the key to the server in a header, never on the command line.
 </details>
 
 ### Claude Code
