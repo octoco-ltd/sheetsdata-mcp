@@ -1,24 +1,42 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.octoco-ltd/sheetsdata-mcp",
-  "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand.",
+  "title": "SheetsData",
+  "description": "Electronic component datasheets for AI agents: pinouts, specs, package info and design checks.",
   "repository": {
     "url": "https://github.com/octoco-ltd/sheetsdata-mcp",
     "source": "github"
   },
-  "version": "1.3.3",
+  "websiteUrl": "https://sheetsdata.com",
+  "icons": [
+    {
+      "src": "https://sheetsdata.com/icon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "any"
+      ]
+    },
+    {
+      "src": "https://raw.githubusercontent.com/octoco-ltd/sheetsdata-mcp/main/logo.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "400x400"
+      ]
+    }
+  ],
+  "version": "1.4.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@sheetsdata/mcp",
-      "version": "1.3.3",
+      "version": "1.4.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "SHEETSDATA_API_KEY",
-          "description": "Optional — if omitted, OAuth login opens in your browser. Get a key at https://sheetsdata.com/dashboard/keys",
+          "description": "Optional. Leave unset to sign in with OAuth in your browser, or set an API key from https://sheetsdata.com/dashboard/keys",
           "isRequired": false,
           "format": "string",
           "isSecret": true
