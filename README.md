@@ -117,7 +117,7 @@ Use whichever your client supports; both bill the same organisation.
 | Standards | OAuth 2.1 with PKCE, dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), discovery ([RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414), [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)) | Bearer token ([RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750)) |
 | Revoke | Per app, from [the dashboard](https://sheetsdata.com/dashboard/keys) | Delete the key |
 
-If a client asks how to register an OAuth client, choose automatic (dynamic) registration.
+If a client asks how to register an OAuth client, choose automatic (dynamic) registration; SheetsData doesn't support client ID metadata documents yet.
 
 ## Install
 
@@ -157,7 +157,7 @@ Every client below was checked against its own documentation on 2026-10-16 (link
 
 ### Claude (claude.ai and Claude Desktop)
 
-**Custom connector (OAuth).** Open **Customize → Connectors**, click **+ Add**, then **Add custom connector**. Name it `SheetsData`, paste `https://mcp.sheetsdata.com/mcp` and click **Continue**. If asked for an OAuth client, choose **Register automatically**. Click **Add**, then **Connect**, and sign in to SheetsData in the browser tab that opens. On Team and Enterprise plans an owner adds it under **Organization settings → Connectors → Add → Custom → Web**. Free plans can add one custom connector.
+**Custom connector (OAuth).** Open **Customize → Connectors**, click **+ Add**, then **Add custom connector**. Name it `SheetsData`, paste `https://mcp.sheetsdata.com/mcp` and click **Continue**. Under **OAuth client**, choose **Register automatically**: SheetsData doesn't support the default "Use Claude's published identity" option yet. Click **Add**, then **Connect**, and sign in to SheetsData in the browser tab that opens. On Team and Enterprise plans an owner adds it under **Organization settings → Connectors → Add → Custom → Web**. Free plans can add one custom connector.
 
 **Claude Desktop bundle.** Download `sheetsdata-x.y.z.mcpb` from the [latest release](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drop it onto the Claude Desktop window. Leave the API key field blank to sign in with OAuth, or paste a key.
 
@@ -189,7 +189,7 @@ Docs: [Custom connectors using remote MCP](https://support.claude.com/en/article
 claude mcp add --transport http sheetsdata https://mcp.sheetsdata.com/mcp
 ```
 
-Start Claude Code, run `/mcp`, choose **sheetsdata → Authenticate** and sign in. Add `--scope user` to have SheetsData in every project.
+Start Claude Code, run `/mcp`, choose **sheetsdata → Authenticate** and sign in (or run `claude mcp login sheetsdata` from your shell). Add `--scope user` to have SheetsData in every project.
 
 <details>
 <summary>Use an API key instead</summary>
