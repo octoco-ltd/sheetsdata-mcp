@@ -1,7 +1,7 @@
 {
   "name": "sheetsdata",
-  "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
-  "version": "1.3.3",
+  "description": "Electronic component datasheets for AI agents — pinouts, specs, package info and design checks from manufacturer PDFs.",
+  "version": "1.4.0",
   "author": "Octoco Ltd",
   "homepage": "https://sheetsdata.com",
   "repository": "https://github.com/octoco-ltd/sheetsdata-mcp",
@@ -11,57 +11,66 @@
     "url": "https://mcp.sheetsdata.com/mcp"
   },
   "authentication": {
-    "type": "bearer",
-    "instructions": "OAuth 2.0 is the recommended auth method — most MCP clients (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, Amp) run the flow automatically on first connect. For CI, scripts, or clients without MCP OAuth support, generate an API key at https://sheetsdata.com/dashboard/keys and pass it as a Bearer header."
+    "type": "oauth2",
+    "fallback": "bearer",
+    "instructions": "Sign in with OAuth 2.1 (dynamic client registration, PKCE): Claude, Claude Code, ChatGPT, Codex, Cursor, VS Code, Gemini CLI, Windsurf, Zed, Goose, Amp and most other MCP clients open a browser tab the first time they connect. For CI, scripts or clients without MCP OAuth, create an API key at https://sheetsdata.com/dashboard/keys and send it as 'Authorization: Bearer <key>'."
   },
   "tools": [
     {
       "name": "search_parts",
-      "description": "Search for electronic components by part number or keyword across multiple distributors. Returns merged results with pricing and stock."
+      "description": "Find parts by part number or keyword across JLCPCB, Mouser and DigiKey, merged by MPN, with stock, price and datasheet status from each."
     },
     {
-      "name": "search_datasheets",
-      "description": "Semantic search across all extracted datasheets using natural language queries."
-    },
-    {
-      "name": "prefetch_datasheets",
-      "description": "Batch warm-up extraction for up to 20 parts. Fire-and-forget to reduce wait times."
-    },
-    {
-      "name": "check_extraction_status",
-      "description": "Poll extraction progress after prefetch or read_datasheet."
+      "name": "find_parts",
+      "description": "Find parts that meet numeric specs with units (e.g. Vin ≥ 24 V, Iout ≥ 2 A), package or stock; each check reports pass, fail or unknown with its source."
     },
     {
       "name": "get_part_details",
-      "description": "Full component details by MPN — pricing, stock, parameters from all providers."
+      "description": "A part's key parameters, package, pricing, stock and datasheet status, by MPN or LCSC number."
+    },
+    {
+      "name": "check_bom",
+      "description": "Check up to 20 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices."
+    },
+    {
+      "name": "prefetch_datasheets",
+      "description": "Start reading up to 20 datasheets at once, so a whole BOM is ready before you ask about it."
+    },
+    {
+      "name": "check_extraction_status",
+      "description": "Report how far a datasheet that is still being read has got."
     },
     {
       "name": "read_datasheet",
-      "description": "Extract structured datasheet sections (summary, pinout, electrical, package) or semantic search within a datasheet."
+      "description": "Any section of a datasheet as text and tables (summary, pinout, electrical, absolute maximum ratings, package, or any heading), or a search within one datasheet."
+    },
+    {
+      "name": "search_datasheets",
+      "description": "Search every datasheet read so far by meaning, e.g. 'LDO with PSRR above 70 dB'."
     },
     {
       "name": "compare_parts",
-      "description": "Compare 2-5 parts side by side with merged provider data."
-    },
-    {
-      "name": "check_design_fit",
-      "description": "Validate a part against operating conditions. Returns PASS/FAIL/WARNING per parameter."
+      "description": "Compare 2-5 parts side by side: parameters, package, pricing, stock and datasheet summaries."
     },
     {
       "name": "find_alternative",
-      "description": "Find alternative/substitute components with similar specs, same package, or compatible pinout."
+      "description": "Find drop-in and functional substitutes for a part, ranked by spec, package and stock match, with notes on each match."
+    },
+    {
+      "name": "check_design_fit",
+      "description": "Check operating conditions against the datasheet's absolute maximum and recommended ratings: PASS, WARNING or FAIL per condition, with the datasheet row it used."
     },
     {
       "name": "analyze_image",
-      "description": "Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams."
+      "description": "Read values off a datasheet figure: a characteristic graph, package drawing or pin diagram."
     },
     {
       "name": "request_datasheet_upload",
-      "description": "Request a signed URL to upload a datasheet PDF when datasheet_status is 'no_source' or 'unsupported'. Free — the 50¢ upload fee is only charged on confirm_datasheet_upload after validation. Uploads are private to your org."
+      "description": "Get a private signed upload link for a datasheet PDF we couldn't find (datasheet_status 'no_source' or 'unsupported'). Free; the fee is charged only on confirm."
     },
     {
       "name": "confirm_datasheet_upload",
-      "description": "Confirm a datasheet upload started via request_datasheet_upload. Verifies SHA-256 + PDF validity + MPN on first page, then charges the upload fee and queues extraction."
+      "description": "Verify an uploaded PDF (SHA-256, valid PDF, MPN on the first page), charge the upload fee and read it into your organisation's private library."
     }
   ],
   "prompts": [

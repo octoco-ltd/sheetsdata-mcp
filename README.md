@@ -1,130 +1,170 @@
 # SheetsData MCP
 
-[![MCP Badge](https://lobehub.com/badge/mcp/octoco-ltd-sheetsdata-mcp)](https://lobehub.com/mcp/octoco-ltd-sheetsdata-mcp) [![sheetsdata-mcp MCP server](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp/badges/score.svg)](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp)
+[![npm](https://img.shields.io/npm/v/@sheetsdata/mcp)](https://www.npmjs.com/package/@sheetsdata/mcp) [![MCP Badge](https://lobehub.com/badge/mcp/octoco-ltd-sheetsdata-mcp)](https://lobehub.com/mcp/octoco-ltd-sheetsdata-mcp) [![sheetsdata-mcp MCP server](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp/badges/score.svg)](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp)
 
 [![sheetsdata-mcp MCP server](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp/badges/card.svg)](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp)
 
-**Electronic component datasheets for AI agents** — specs, pinouts, package data on demand. No PDFs required.
+**Electronic component datasheets for AI agents** — pinouts, specs, package info and design checks from manufacturer PDFs.
 
-[SheetsData](https://sheetsdata.com) is an MCP server that gives AI agents instant, structured access to electronic component data. One tool call returns the pinout. Another returns electrical specs. No PDFs. No uploads. No context window stuffing.
+[SheetsData](https://sheetsdata.com) is a hosted MCP server. Your agent finds parts across JLCPCB, Mouser and DigiKey, reads any section of a part's datasheet as text and tables, compares parts, checks a BOM, and checks your operating conditions against the datasheet's ratings. The agent never sees a PDF, and you don't have to find or paste one.
 
-> **Beta** — SheetsData is currently in public beta. APIs, pricing, and features may change. See [Disclaimer](#disclaimer) below.
+```
+Server URL:  https://mcp.sheetsdata.com/mcp   (Streamable HTTP)
+Sign-in:     MCP OAuth (browser), or an API key as "Authorization: Bearer <key>"
+```
+
+This repository holds the install configs, the [`@sheetsdata/mcp`](https://www.npmjs.com/package/@sheetsdata/mcp) stdio proxy for clients that only start local servers, and the Claude Desktop bundle. The server itself is a hosted service.
 
 <p align="center">
-  <a href="https://sheetsdata.com/signup">Sign up &amp; connect via OAuth</a> &nbsp;·&nbsp;
-  <a href="https://sheetsdata.com/dashboard/keys">API key (fallback)</a> &nbsp;·&nbsp;
-  <a href="https://sheetsdata.com">Website</a>
+  <a href="https://sheetsdata.com/signup">Create a free account</a> &nbsp;·&nbsp;
+  <a href="#install">Install in your client</a> &nbsp;·&nbsp;
+  <a href="https://sheetsdata.com/pricing">Pricing</a> &nbsp;·&nbsp;
+  <a href="https://sheetsdata.com/help">Docs</a>
 </p>
 
-## Demo
+## What it looks like
+
+"Is the TPS54302 fine with 24 V in and 2.5 A out?"
 
 ```
-Agent: read_datasheet("TPS54302", section="pinout")
-→ Pin table: BOOT(6), EN(5), FB(4), GND(1), SW(2), VIN(3)
+check_design_fit("TPS54302", input_voltage=24, output_current=2.5)
 
-Agent: check_design_fit("TPS54302", input_voltage=12, output_current=2)
-→ PASS — all parameters within datasheet limits
-
-Agent: "What's the maximum SPI clock frequency for the STM32G030?"
-→ Uses read_datasheet to find electrical specs — returns 32 MHz
-
-Agent: find_alternative("TPS54302", constraints="in_stock")
-→ MP2315, TPS54331 ranked by package/spec match
+overall: WARNING
+  input_voltage  24 V  PASS  within the recommended range 4.5–28 V (14.3% margin)
+                             datasheet row: "| V I |  | 4.5 | 28 | V |"
+  unmatched: output_current
 ```
 
-The agent never sees a PDF. The engineer never uploads one.
+A condition the tool can't find a limit for is listed as `unmatched` and keeps the verdict at WARNING: a clean PASS means every condition was checked against the datasheet.
+
+"Buck converters that take 24 V in and give at least 2 A" (free):
+
+```
+find_parts("buck converter", constraints=[vin_max >= 24 V, iout >= 2 A])
+
+AP63357DV-7       32 V  3.5 A  pass@digikey   stock: DigiKey 49,457   datasheet: ready
+LM2596S-5.0/NOPB  40 V  3 A    pass@digikey   stock: DigiKey 4,460    datasheet: ready
+LMR33630ADDAR     36 V  3 A    pass@digikey   stock: JLCPCB 17,768    datasheet: ready
+```
+
+```
+read_datasheet("TPS54302", section="pinout")
+→ GND (1), SW (2), VIN (3), FB (4), EN (5), BOOT (6)
+```
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| `search_parts` | Search for components by part number or keyword. Results merged by MPN with pricing and stock. |
-| `search_datasheets` | Semantic search across all extracted datasheets. Natural language queries like "low-noise LDO with PSRR above 70dB". |
-| `prefetch_datasheets` | Batch warm-up extraction for up to 20 parts. Fire-and-forget — reduces wait times. |
-| `check_extraction_status` | Poll extraction progress after prefetch or read_datasheet. |
-| `get_part_details` | Full component details — specs, parameters, pricing, and stock. |
-| `read_datasheet` | Structured datasheet sections (summary, pinout, electrical, abs_max, package) or semantic search within a datasheet. |
-| `compare_parts` | Compare 2–5 parts side by side on real datasheet specs. |
-| `check_design_fit` | Validate operating conditions against datasheet limits. PASS/FAIL/WARNING per parameter. |
-| `find_alternative` | Find alternative/substitute components by specs, package, or availability. |
-| `analyze_image` | Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams. |
-| `request_datasheet_upload` | Request a signed URL to upload a datasheet PDF when we don't have one (`datasheet_status` = `no_source` or `unsupported`). Free — fee is only charged on confirm. |
-| `confirm_datasheet_upload` | Confirm an upload: verifies SHA-256, validates PDF, checks MPN on first page, charges the upload fee, and queues extraction. Datasheets are private to your org. |
+Prices are per call and the same on every plan. A call that fails is not charged. Current prices are on [sheetsdata.com/pricing](https://sheetsdata.com/pricing).
+
+| Tool | Price | What it does |
+|------|------:|--------------|
+| `search_parts` | Free | Find parts by part number or keyword across JLCPCB, Mouser and DigiKey, merged by MPN, with stock, price and datasheet status from each. |
+| `find_parts` | Free | Find parts that meet numeric specs with units (e.g. Vin ≥ 24 V, Iout ≥ 2 A), package or stock; each constraint reports pass, fail or unknown with its source. |
+| `get_part_details` | 3¢ | A part's key parameters, package, pricing, stock and datasheet status, by MPN or LCSC number. |
+| `check_bom` | 3¢ | Check up to 20 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices. |
+| `prefetch_datasheets` | 1¢ | Start reading up to 20 datasheets at once, so a whole BOM is ready before you ask about it. |
+| `check_extraction_status` | Free | Report how far a datasheet that is still being read has got. |
+| `read_datasheet` | 10¢ | Any section of a datasheet as text and tables (summary, pinout, electrical, absolute maximum ratings, package, or any heading), or a search within one datasheet. |
+| `search_datasheets` | 2¢ | Search every datasheet read so far by meaning, e.g. "LDO with PSRR above 70 dB". |
+| `compare_parts` | 8¢ | Compare 2–5 parts side by side: parameters, package, pricing, stock and datasheet summaries. |
+| `find_alternative` | 6¢ | Find drop-in and functional substitutes for a part, ranked by spec, package and stock match. |
+| `check_design_fit` | 12¢ | Check operating conditions against the absolute maximum and recommended ratings: PASS, WARNING or FAIL per condition, with the datasheet row it used. |
+| `analyze_image` | 10¢ | Read values off a datasheet figure: a characteristic graph, package drawing or pin diagram. |
+| `request_datasheet_upload` | Free | Get a private upload link for a datasheet PDF we couldn't find. |
+| `confirm_datasheet_upload` | 50¢ | Verify the uploaded PDF (hash, valid PDF, MPN on page one) and read it into your organisation's private library. Not charged if the file fails the checks. |
+
+Pass manufacturer part numbers (`TPS54302`, `STM32F446RCT6`) or LCSC numbers (`C2837938`), not values like `100nF` or reference designators like `R1`. A datasheet nobody has asked for yet is read on first request (poll `check_extraction_status`); after that it is cached for everyone.
 
 ## Prompts
 
-Built-in prompt templates that guide the agent through common hardware engineering tasks:
+Built-in prompts that walk the agent through common hardware tasks:
 
-| Prompt | Description |
-|--------|-------------|
-| `component-selection` | Walk through selecting a component: define requirements, search candidates, compare specs, validate design fit. |
+| Prompt | What it does |
+|--------|--------------|
+| `component-selection` | Select a component: define requirements, search candidates, compare specs, validate design fit. |
 | `bom-review` | Review a bill of materials: look up each part, check stock and lifecycle, flag risks, suggest alternatives. |
-| `datasheet-deep-dive` | Deep-dive into a specific part: summarize, extract pinout, electrical specs, absolute max ratings, and application circuit. |
-| `design-validation` | Validate a design: check each component against operating conditions, flag out-of-spec parameters. |
-| `second-source` | Find second-source alternatives for a part: match package, specs, and availability across providers. |
-| `interface-check` | Check electrical and protocol compatibility between two ICs on a shared bus (SPI, I2C, UART). Verifies VOH/VOL vs VIH/VIL, flags level-shifter needs, extracts protocol config (SPI mode, I2C address, pull-up values). |
-| `firmware-kickstart` | Extract register map, init sequence, and protocol details from a peripheral IC datasheet. Generates a firmware integration guide with register writes, transaction examples, and common pitfalls. |
-| `thermal-review` | Thermal and derating analysis: compare operating conditions against abs max AND recommended limits, estimate junction temperature, check SOA derating curves, flag exposed-pad requirements. |
+| `datasheet-deep-dive` | Summarise a part and extract its pinout, electrical specs, absolute maximum ratings and application circuit. |
+| `design-validation` | Check each component against its operating conditions and flag out-of-spec parameters. |
+| `second-source` | Find second-source alternatives that match package, specs and availability. |
+| `interface-check` | Check electrical and protocol compatibility between two ICs on a shared bus (SPI, I2C, UART): logic levels, timing, pull-ups, level shifters. |
+| `firmware-kickstart` | Extract the register map, initialisation sequence and protocol details of a peripheral IC into a firmware integration guide. |
+| `thermal-review` | Thermal and derating analysis: absolute maximum and recommended limits, junction temperature from RθJA, SOA derating, exposed-pad needs. |
 
 ## Resources
 
-Data the server exposes for agent context:
+| Resource | What it holds |
+|----------|---------------|
+| `sheetsdata://workflow` | The recommended tool order for component selection and design validation. |
+| `sheetsdata://tips/datasheet-pitfalls` | The eight most common datasheet reading mistakes: absolute maximum vs recommended, typical vs worst case, thermal derating, logic levels, I2C/SPI gotchas, decoupling, exposed pads, lifecycle. |
+| `sheetsdata://tips/design-review-checklist` | A hardware design review checklist (power, signal interfaces, component selection, firmware), pointing at the tool or prompt for each check. |
 
-| Resource | Description |
-|----------|-------------|
-| `sheetsdata://workflow` | Recommended tool workflow for component selection — search, evaluate, read datasheet, validate, compare. |
-| `sheetsdata://tips/datasheet-pitfalls` | The 8 most common datasheet interpretation mistakes — abs max confusion, typical vs worst-case, thermal derating, voltage levels, I2C/SPI gotchas, decoupling, exposed pads, lifecycle risks. |
-| `sheetsdata://tips/design-review-checklist` | Hardware design review checklist covering power supply, signal interfaces, component selection, and firmware integration. |
+## Pricing
 
-## Authentication — pick OAuth, fall back to API key
+- **Free to start.** A new account gets $5 of credit, no card needed ($20 more when you add a card). Searching (`search_parts`, `find_parts`) is free.
+- **Trial** is pay as you go from a prepaid balance: 5 new datasheets a day (datasheets already read are unlimited), 30 requests a minute.
+- **Pro** is $39 a month minimum, with your calls counting toward it: no daily cap on new datasheets, higher rate limits and a private parts library.
 
-SheetsData supports two auth paths. Use whichever works best for your client; both bill against the same org.
+Plans, limits and fees: [sheetsdata.com/pricing](https://sheetsdata.com/pricing).
 
-| | **OAuth 2.0** | **API key** |
+## Authentication
+
+Use whichever your client supports; both bill the same organisation.
+
+| | **OAuth (recommended)** | **API key** |
 |---|---|---|
-| Best for | Interactive MCP clients (Claude Desktop, Cursor, etc.) | CI, scripts, headless agents, or clients that don't speak MCP OAuth |
-| What you do | Click *Connect* in your client → log in here → done | Generate a key in the dashboard, paste as a `Bearer` header |
-| Setup | Just paste a URL | Paste a URL + a header |
-| Discovery | Automatic via [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414) / [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) | n/a |
-| Spec compliance | PKCE-mandatory, dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), refresh-token rotation | RFC 6750 Bearer |
-| Revoke | Per-client, from `/dashboard/keys` | Delete the key |
+| Best for | Interactive clients | CI, scripts, headless agents, clients without MCP OAuth |
+| What you do | Add the URL, then sign in to SheetsData in the browser tab that opens | Create a key at [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys) and send `Authorization: Bearer <key>` |
+| Standards | OAuth 2.1 with PKCE, dynamic client registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), discovery ([RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414), [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)) | Bearer token ([RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750)) |
+| Revoke | Per app, from [the dashboard](https://sheetsdata.com/dashboard/keys) | Delete the key |
 
-> **Recommended:** OAuth. It's a single URL paste, no copy-pasting secrets, and you can yank a connected app from the dashboard at any time.
-
-## Quickest paths (one-click install)
-
-**Claude Desktop** — download the `.mcpb` bundle from the latest [GitHub release](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drag-and-drop it into the Claude Desktop window. The install dialog will surface every tool the bundle provides before confirming. Leave the API key field blank to use OAuth (recommended) — Claude Desktop will open a browser tab on first use to authorize. No JSON editing.
-
-[![Download .mcpb](https://img.shields.io/badge/Download_.mcpb-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic)](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest)
-
-**Cursor** or **VS Code** — single-click install pre-fills the config and prompts to authorize on first use.
-
-[![Install in Cursor](https://img.shields.io/badge/Install_in_Cursor-One_click-000?style=for-the-badge&logo=cursor)](cursor://anysphere.cursor-deeplink/mcp/install?name=SheetsData&config=eyJ1cmwiOiJodHRwczovL21jcC5zaGVldHNkYXRhLmNvbS9tY3AifQ==)
-[![Install in VS Code](https://img.shields.io/badge/Install_in_VS_Code-One_click-007ACC?style=for-the-badge&logo=visualstudiocode)](vscode:mcp/install?%7B%22name%22%3A%22sheetsdata%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.sheetsdata.com/mcp%22%7D)
-
-For everything else, copy the snippet from the right section below.
+If a client asks how to register an OAuth client, choose automatic (dynamic) registration; SheetsData doesn't support client ID metadata documents yet.
 
 ## Install
 
-### Claude Desktop
+One-click installs (sign in on first use):
 
-**Easiest — drag-and-drop the bundled extension.** Download the latest `sheetsdata-x.y.z.mcpb` from the [Releases page](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drop the file onto the Claude Desktop window. Claude shows the list of tools the bundle provides and installs it. Leave the API key field blank to use OAuth (recommended) — a browser tab opens on first use to authorize. No JSON editing, no `npm install`.
+[![Install in Cursor](https://img.shields.io/badge/Install_in-Cursor-000?style=for-the-badge&logo=cursor)](https://cursor.com/install-mcp?name=sheetsdata&config=eyJ1cmwiOiJodHRwczovL21jcC5zaGVldHNkYXRhLmNvbS9tY3AifQ%3D%3D)
+[![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-007ACC?style=for-the-badge&logo=visualstudiocode)](https://insiders.vscode.dev/redirect/mcp/install?name=sheetsdata&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.sheetsdata.com%2Fmcp%22%7D)
+[![Install in VS Code Insiders](https://img.shields.io/badge/Install_in-VS_Code_Insiders-24bfa5?style=for-the-badge&logo=visualstudiocode)](https://insiders.vscode.dev/redirect/mcp/install?name=sheetsdata&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.sheetsdata.com%2Fmcp%22%7D&quality=insiders)
+[![Install in Kiro](https://img.shields.io/badge/Install_in-Kiro-7B3FE4?style=for-the-badge)](https://kiro.dev/launch/mcp/add?name=sheetsdata&config=%7B%22url%22%3A%22https%3A%2F%2Fmcp.sheetsdata.com%2Fmcp%22%7D)
+[![Download .mcpb for Claude Desktop](https://img.shields.io/badge/Download_.mcpb-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic)](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest)
 
-**Or — add a remote connector via the UI.** Open Claude Desktop → **Settings** → **Connectors** → **Add custom connector** at the bottom of the list.
+Every client below was checked against its own documentation on 2026-10-16 (linked in each section). In the snippets, replace `YOUR_API_KEY` with a key from [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys).
 
-| Field | Value |
-|---|---|
-| Name | `SheetsData` |
-| URL | `https://mcp.sheetsdata.com/mcp` |
+- [Claude (claude.ai and Claude Desktop)](#claude-claudeai-and-claude-desktop)
+- [Claude Code](#claude-code)
+- [ChatGPT](#chatgpt)
+- [OpenAI Codex](#openai-codex)
+- [Cursor](#cursor)
+- [VS Code (GitHub Copilot)](#vs-code-github-copilot)
+- [GitHub Copilot CLI](#github-copilot-cli)
+- [Gemini CLI](#gemini-cli)
+- [Google Antigravity](#google-antigravity)
+- [Windsurf (Devin Desktop)](#windsurf-devin-desktop)
+- [Zed](#zed)
+- [Cline](#cline)
+- [Roo Code](#roo-code)
+- [Continue](#continue)
+- [Goose](#goose)
+- [Amp](#amp)
+- [Kiro](#kiro)
+- [JetBrains (Junie and AI Assistant)](#jetbrains-junie-and-ai-assistant)
+- [opencode](#opencode)
+- [LM Studio](#lm-studio)
+- [Warp](#warp)
+- [Any client that only starts local servers](#any-client-that-only-starts-local-servers)
+- [Your own code](#your-own-code)
 
-Click **Add**. Claude Desktop will open a browser tab to the SheetsData consent screen — pick the org to authorize, and you're done. Tools appear in Claude immediately.
+### Claude (claude.ai and Claude Desktop)
 
-> **Note**: `claude_desktop_config.json` only launches local (stdio) servers, so it can't hold the remote URL. Use the Connectors UI (OAuth) or the `.mcpb` bundle above; for an API key, run the `@sheetsdata/mcp` proxy from the JSON config as shown below.
+**Custom connector (OAuth).** Open **Customize → Connectors**, click **+ Add**, then **Add custom connector**. Name it `SheetsData`, paste `https://mcp.sheetsdata.com/mcp` and click **Continue**. Under **OAuth client**, choose **Register automatically**: SheetsData doesn't support the default "Use Claude's published identity" option yet. Click **Add**, then **Connect**, and sign in to SheetsData in the browser tab that opens. On Team and Enterprise plans an owner adds it under **Organization settings → Connectors → Add → Custom → Web**. Free plans can add one custom connector.
+
+**Claude Desktop bundle.** Download `sheetsdata-x.y.z.mcpb` from the [latest release](https://github.com/octoco-ltd/sheetsdata-mcp/releases/latest) and drop it onto the Claude Desktop window. Leave the API key field blank to sign in with OAuth, or paste a key.
 
 <details>
-<summary>Use an API key instead (via JSON config)</summary>
+<summary>Use an API key instead</summary>
 
-Open Claude Desktop → Settings → Developer → **Edit Config**, then add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+In the custom connector dialog, add the request header `Authorization: Bearer YOUR_API_KEY`. Or, in Claude Desktop, open **Settings → Developer → Edit Config** and add the stdio proxy (needs Node.js; `claude_desktop_config.json` only starts local servers, so it cannot hold the remote URL):
 
 ```json
 {
@@ -132,273 +172,500 @@ Open Claude Desktop → Settings → Developer → **Edit Config**, then add to 
     "sheetsdata": {
       "command": "npx",
       "args": ["-y", "@sheetsdata/mcp"],
-      "env": {
-        "SHEETSDATA_API_KEY": "YOUR_API_KEY"
-      }
+      "env": { "SHEETSDATA_API_KEY": "YOUR_API_KEY" }
     }
   }
 }
 ```
 
-Restart Claude Desktop. Get a key from [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys). The proxy passes the key to the server in a header, never on the command line.
+Restart Claude. The proxy sends the key in a header, never on the command line.
 </details>
+
+Docs: [Custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp)
 
 ### Claude Code
 
 ```bash
-claude mcp add sheetsdata --transport http "https://mcp.sheetsdata.com/mcp"
+claude mcp add --transport http sheetsdata https://mcp.sheetsdata.com/mcp
 ```
 
-Claude Code will print a one-time OAuth URL — open it, authorize, done.
+Start Claude Code, run `/mcp`, choose **sheetsdata → Authenticate** and sign in (or run `claude mcp login sheetsdata` from your shell). Add `--scope user` to have SheetsData in every project.
 
 <details>
 <summary>Use an API key instead</summary>
 
 ```bash
-claude mcp add sheetsdata \
-  --transport http \
-  "https://mcp.sheetsdata.com/mcp" \
+claude mcp add --transport http sheetsdata https://mcp.sheetsdata.com/mcp \
+  --header "Authorization: Bearer YOUR_API_KEY"
+```
+
+In a project's `.mcp.json`, give the entry `"type": "http"`; an entry without a type is treated as a local server.
+</details>
+
+Docs: [Claude Code MCP](https://code.claude.com/docs/en/mcp)
+
+### ChatGPT
+
+On the web, open [chatgpt.com/plugins](https://chatgpt.com/plugins), click **+**, then **Add custom MCP server**. Name it `SheetsData`, paste `https://mcp.sheetsdata.com/mcp` and choose **OAuth**. Accept the warning, choose **Create as a plugin**, install it and sign in to SheetsData. Your plan and workspace settings decide whether custom servers are available. ChatGPT cannot send an API key.
+
+Docs: [Custom MCP servers in ChatGPT](https://developers.openai.com/api/docs/guides/custom-mcp-server)
+
+### OpenAI Codex
+
+```bash
+codex mcp add sheetsdata --url https://mcp.sheetsdata.com/mcp
+codex mcp login sheetsdata
+```
+
+The second command opens your browser to sign in. The Codex IDE extension and app read the same `~/.codex/config.toml`.
+
+<details>
+<summary>Use an API key instead</summary>
+
+Add to `~/.codex/config.toml`, and set `SHEETSDATA_API_KEY` in your shell:
+
+```toml
+[mcp_servers.sheetsdata]
+url = "https://mcp.sheetsdata.com/mcp"
+bearer_token_env_var = "SHEETSDATA_API_KEY"
+```
+</details>
+
+Docs: [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
+
+### Cursor
+
+Click [**Install in Cursor**](https://cursor.com/install-mcp?name=sheetsdata&config=eyJ1cmwiOiJodHRwczovL21jcC5zaGVldHNkYXRhLmNvbS9tY3AifQ%3D%3D), or add to `~/.cursor/mcp.json` (every project) or `.cursor/mcp.json` (one project):
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+Cursor opens your browser to sign in when it first connects.
+
+<details>
+<summary>Use an API key instead</summary>
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+</details>
+
+Docs: [Cursor MCP](https://cursor.com/docs/context/mcp)
+
+### VS Code (GitHub Copilot)
+
+Click [**Install in VS Code**](https://insiders.vscode.dev/redirect/mcp/install?name=sheetsdata&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.sheetsdata.com%2Fmcp%22%7D), run `code --add-mcp '{"name":"sheetsdata","type":"http","url":"https://mcp.sheetsdata.com/mcp"}'`, or add to `.vscode/mcp.json` (run **MCP: Open User Configuration** for every workspace):
+
+```json
+{
+  "servers": {
+    "sheetsdata": {
+      "type": "http",
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+Start the server; VS Code asks you to sign in. Use it from Copilot Chat in agent mode.
+
+<details>
+<summary>Use an API key instead</summary>
+
+VS Code asks for the key the first time the server starts and keeps it out of the file:
+
+```json
+{
+  "inputs": [
+    { "type": "promptString", "id": "sheetsdata-key", "description": "SheetsData API key", "password": true }
+  ],
+  "servers": {
+    "sheetsdata": {
+      "type": "http",
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": { "Authorization": "Bearer ${input:sheetsdata-key}" }
+    }
+  }
+}
+```
+</details>
+
+Docs: [VS Code MCP configuration](https://code.visualstudio.com/docs/agents/reference/mcp-configuration)
+
+### GitHub Copilot CLI
+
+```bash
+copilot mcp add --transport http sheetsdata https://mcp.sheetsdata.com/mcp
+```
+
+Or run `/mcp add` in a session, choose HTTP and paste the URL. Copilot CLI signs in with OAuth when the server asks.
+
+<details>
+<summary>Use an API key instead</summary>
+
+```bash
+copilot mcp add --transport http sheetsdata https://mcp.sheetsdata.com/mcp \
   --header "Authorization: Bearer YOUR_API_KEY"
 ```
 </details>
 
-### Cursor
+Docs: [Adding MCP servers to Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers)
 
-Click the [**Install in Cursor**](cursor://anysphere.cursor-deeplink/mcp/install?name=SheetsData&config=eyJ1cmwiOiJodHRwczovL21jcC5zaGVldHNkYXRhLmNvbS9tY3AifQ==) badge above, *or* add to `.cursor/mcp.json`:
+### Gemini CLI
 
-```json
-{
-  "mcpServers": {
-    "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp"
-    }
-  }
-}
+```bash
+gemini mcp add --transport http --scope user sheetsdata https://mcp.sheetsdata.com/mcp
 ```
 
-Restart Cursor → MCP panel → **SheetsData** → **Connect**.
+Start Gemini CLI, run `/mcp auth sheetsdata` and sign in.
 
 <details>
 <summary>Use an API key instead</summary>
 
-```json
-{
-  "mcpServers": {
-    "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
-      }
-    }
-  }
-}
+```bash
+gemini mcp add --transport http --scope user \
+  --header "Authorization: Bearer YOUR_API_KEY" \
+  sheetsdata https://mcp.sheetsdata.com/mcp
 ```
+
+Editing `~/.gemini/settings.json` by hand? Use `"httpUrl"` for the address; `"url"` means the older SSE transport.
 </details>
 
-### VS Code (GitHub Copilot)
+Docs: [Gemini CLI MCP servers](https://geminicli.com/docs/tools/mcp-server)
 
-Click the [**Install in VS Code**](vscode:mcp/install?%7B%22name%22%3A%22sheetsdata%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A//mcp.sheetsdata.com/mcp%22%7D) badge above, *or* add to `.vscode/mcp.json`:
+### Google Antigravity
 
-```json
-{
-  "servers": {
-    "sheetsdata": {
-      "type": "http",
-      "url": "https://mcp.sheetsdata.com/mcp"
-    }
-  }
-}
-```
-
-VS Code will prompt you to authorize on first use.
-
-<details>
-<summary>Use an API key instead</summary>
-
-```json
-{
-  "servers": {
-    "sheetsdata": {
-      "type": "http",
-      "url": "https://mcp.sheetsdata.com/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
-      }
-    }
-  }
-}
-```
-</details>
-
-### Windsurf
-
-Add to `~/.codeium/windsurf/mcp_config.json`:
+Open the **…** menu → **MCP Servers** → **Manage MCP Servers** → **View raw config** (`~/.gemini/config/mcp_config.json`, or `.agents/mcp_config.json` in a workspace) and add:
 
 ```json
 {
   "mcpServers": {
     "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp"
+      "serverUrl": "https://mcp.sheetsdata.com/mcp"
     }
   }
 }
 ```
 
-Restart Windsurf and click Connect on the SheetsData entry.
+Antigravity needs `serverUrl`; it rejects `url`. Then open **Agent settings → Customizations** and click **Authenticate** next to sheetsdata. For an API key, add `"headers": { "Authorization": "Bearer YOUR_API_KEY" }` to the entry.
 
-<details>
-<summary>Use an API key instead</summary>
+Docs: [Antigravity MCP](https://antigravity.google/docs/mcp)
+
+### Windsurf (Devin Desktop)
+
+In the Cascade panel, open the **…** menu → **MCPs** → **Open MCP config file** (`~/.config/devin/mcp_config.json`; `%APPDATA%\devin\mcp_config.json` on Windows; older Windsurf versions use `~/.codeium/windsurf/mcp_config.json`) and add:
 
 ```json
 {
   "mcpServers": {
     "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
-      }
-    }
-  }
-}
-```
-</details>
-
-### Amp (Sourcegraph)
-
-Add to your Amp settings:
-
-```json
-{
-  "amp.mcpServers": {
-    "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp"
+      "serverUrl": "https://mcp.sheetsdata.com/mcp"
     }
   }
 }
 ```
 
-Amp will run the OAuth flow on first use.
+You sign in to SheetsData in your browser when it connects. For an API key, add `"headers": { "Authorization": "Bearer YOUR_API_KEY" }` to the entry.
 
-<details>
-<summary>Use an API key instead</summary>
-
-```json
-{
-  "amp.mcpServers": {
-    "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
-      }
-    }
-  }
-}
-```
-</details>
-
-### Cline
-
-> Cline doesn't yet support the MCP OAuth flow — use an API key.
-
-In VS Code, open Cline → gear icon → **MCP Servers**:
-
-```json
-{
-  "mcpServers": {
-    "sheetsdata": {
-      "url": "https://mcp.sheetsdata.com/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
-      },
-      "disabled": false
-    }
-  }
-}
-```
+Docs: [Cascade MCP](https://docs.devin.ai/desktop/cascade/mcp)
 
 ### Zed
 
-> Zed doesn't yet support the MCP OAuth flow — use an API key.
-
-Add to Zed `settings.json`:
+Add to your Zed `settings.json` (or **Settings → AI → MCP Servers → Add Server → Add Remote Server**):
 
 ```json
 {
   "context_servers": {
     "sheetsdata": {
-      "settings": {
-        "url": "https://mcp.sheetsdata.com/mcp",
-        "headers": {
-          "Authorization": "Bearer YOUR_API_KEY"
-        }
-      }
+      "url": "https://mcp.sheetsdata.com/mcp"
     }
   }
 }
 ```
 
-### Continue.dev
+Zed asks you to sign in. For an API key, add `"headers": { "Authorization": "Bearer YOUR_API_KEY" }` to the entry.
 
-> Continue doesn't yet support the MCP OAuth flow — use an API key.
+Docs: [Zed MCP](https://zed.dev/docs/ai/mcp)
 
-Add to `~/.continue/config.yaml`:
+### Cline
+
+Open **MCP Servers → Remote Servers**, name it `SheetsData`, paste `https://mcp.sheetsdata.com/mcp`, choose **Streamable HTTP** and click **Add Server**; complete the browser sign-in when prompted. In Cline CLI, run `cline mcp` and choose **Authorize OAuth** for sheetsdata.
+
+<details>
+<summary>Use an API key instead</summary>
+
+Open **MCP Servers → Configure → Configure MCP Servers** (`cline_mcp_settings.json`) and add the entry below. Without `"type"`, Cline assumes SSE.
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "type": "streamableHttp",
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+Or from Cline CLI: `cline mcp add sheetsdata https://mcp.sheetsdata.com/mcp --transport http --header "Authorization: Bearer YOUR_API_KEY" --yes`
+</details>
+
+Docs: [Cline MCP](https://docs.cline.bot/mcp/mcp-overview)
+
+### Roo Code
+
+Roo Code's docs don't describe MCP OAuth, so use an API key. Open **MCP → Edit Global MCP** (`mcp_settings.json`) or the project's `.roo/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "type": "streamable-http",
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+Docs: [Using MCP in Roo Code](https://roocodeinc.github.io/Roo-Code/features/mcp/using-mcp-in-roo)
+
+### Continue
+
+Continue's docs don't describe MCP OAuth, so use an API key. Save as `.continue/mcpServers/sheetsdata.yaml` in your workspace and add `SHEETSDATA_API_KEY` to your Continue secrets:
 
 ```yaml
+name: SheetsData
+version: 0.0.1
+schema: v1
 mcpServers:
-  - name: sheetsdata
+  - name: SheetsData
+    type: streamable-http
     url: https://mcp.sheetsdata.com/mcp
-    headers:
-      Authorization: "Bearer YOUR_API_KEY"
+    requestOptions:
+      headers:
+        Authorization: "Bearer ${{ secrets.SHEETSDATA_API_KEY }}"
 ```
 
-### npx (stdio proxy for any client)
+Docs: [Continue MCP](https://docs.continue.dev/customize/deep-dives/mcp)
 
-For clients that only support stdio transport:
+### Goose
+
+In Goose Desktop, open **Extensions → Add custom extension** and choose Streamable HTTP with the URL `https://mcp.sheetsdata.com/mcp`; in the CLI, run `goose configure` → **Add Extension** → **Remote Extension (Streamable HTTP)**. Goose runs the OAuth sign-in when it connects. Or add to `~/.config/goose/config.yaml`:
+
+```yaml
+extensions:
+  sheetsdata:
+    name: SheetsData
+    type: streamable_http
+    uri: https://mcp.sheetsdata.com/mcp
+    enabled: true
+    timeout: 300
+```
+
+For an API key, add `headers: { Authorization: "Bearer YOUR_API_KEY" }` to the entry.
+
+Docs: [Using extensions in Goose](https://goose-docs.ai/docs/getting-started/using-extensions)
+
+### Amp
 
 ```bash
-SHEETSDATA_API_KEY=your_key npx @sheetsdata/mcp
+amp mcp add sheetsdata https://mcp.sheetsdata.com/mcp
 ```
 
-## Need an API key?
+Amp opens your browser to sign in.
 
-1. Sign up at [sheetsdata.com/signup](https://sheetsdata.com/signup) (30 seconds, free credits)
-2. Go to [Dashboard → API Keys](https://sheetsdata.com/dashboard/keys)
-3. Click **Create key**, copy the token, paste it into your config
+<details>
+<summary>Use an API key instead</summary>
 
-You can also manage OAuth-authorized apps from the same page — see who has connected, when, and revoke any of them with one click.
+Add to `~/.config/amp/settings.json` (or `.amp/settings.json` in a project, then run `amp mcp approve sheetsdata`):
 
-## Recommended Workflow
+```json
+{
+  "amp.mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+</details>
+
+Docs: [Amp MCP](https://ampcode.com/docs/customize/mcp)
+
+### Kiro
+
+Click [**Install in Kiro**](https://kiro.dev/launch/mcp/add?name=sheetsdata&config=%7B%22url%22%3A%22https%3A%2F%2Fmcp.sheetsdata.com%2Fmcp%22%7D), or add to `~/.kiro/settings/mcp.json` (or `.kiro/settings/mcp.json` in a workspace):
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+Kiro asks you to sign in. For an API key, add `"headers": { "Authorization": "Bearer YOUR_API_KEY" }` to the entry.
+
+Docs: [Kiro MCP configuration](https://kiro.dev/docs/mcp/configuration/)
+
+### JetBrains (Junie and AI Assistant)
+
+**Junie** (IDE and CLI): add to `~/.junie/mcp/mcp.json` (or `.junie/mcp/mcp.json` in a project), then run `/mcp` and choose **Authorize**. For an API key, add `"headers": { "Authorization": "Bearer YOUR_API_KEY" }`.
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp"
+    }
+  }
+}
+```
+
+**AI Assistant**: its docs describe neither OAuth nor headers for remote servers, so run the local proxy. Open **Settings → Tools → AI Assistant → Model Context Protocol (MCP) → Add** and paste the [stdio entry](#any-client-that-only-starts-local-servers) below.
+
+Docs: [Junie MCP](https://junie.jetbrains.com/docs/junie-cli-mcp-configuration.html), [AI Assistant MCP](https://www.jetbrains.com/help/ai-assistant/mcp.html)
+
+### opencode
+
+Add to `opencode.json`:
+
+```json
+{
+  "mcp": {
+    "sheetsdata": {
+      "type": "remote",
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "enabled": true
+    }
+  }
+}
+```
+
+opencode signs in automatically, or run `opencode mcp auth sheetsdata`. For an API key, add `"headers": { "Authorization": "Bearer YOUR_API_KEY" }` to the entry.
+
+Docs: [opencode MCP servers](https://opencode.ai/docs/mcp-servers/)
+
+### LM Studio
+
+LM Studio's docs don't describe MCP OAuth, so use an API key. Open the **Program** tab → **Install** → **Edit mcp.json**:
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+Docs: [LM Studio MCP](https://lmstudio.ai/docs/app/mcp)
+
+### Warp
+
+Open **Settings → Agents → MCP servers → + Add** and paste:
+
+```json
+{
+  "sheetsdata": {
+    "url": "https://mcp.sheetsdata.com/mcp"
+  }
+}
+```
+
+Warp opens your browser to sign in when the server starts. For an API key, add `"headers": { "Authorization": "Bearer YOUR_API_KEY" }` to the entry.
+
+Docs: [Warp MCP](https://docs.warp.dev/agents/capabilities/mcp/)
+
+### Any client that only starts local servers
+
+The `@sheetsdata/mcp` package (Node.js 18+) proxies stdio to the hosted server. Without `SHEETSDATA_API_KEY` it opens your browser to sign in with OAuth and caches the token.
+
+```json
+{
+  "mcpServers": {
+    "sheetsdata": {
+      "command": "npx",
+      "args": ["-y", "@sheetsdata/mcp"],
+      "env": { "SHEETSDATA_API_KEY": "YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+From a shell: `SHEETSDATA_API_KEY=YOUR_API_KEY npx -y @sheetsdata/mcp`, or `npx -y @sheetsdata/mcp --api-key YOUR_API_KEY`.
+
+### Your own code
+
+Connect with the [MCP TypeScript SDK](https://modelcontextprotocol.io/docs/sdk) over Streamable HTTP (the SDK can also run the OAuth flow):
+
+```ts
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+const transport = new StreamableHTTPClientTransport(new URL("https://mcp.sheetsdata.com/mcp"), {
+  requestInit: { headers: { Authorization: "Bearer YOUR_API_KEY" } },
+});
+const client = new Client({ name: "my-agent", version: "1.0.0" });
+await client.connect(transport);
+
+const result = await client.callTool({ name: "search_parts", arguments: { query: "TPS54302" } });
+```
+
+## Recommended workflow
 
 ```
-1. search_parts       → Find candidates by keyword or part number
-2. get_part_details    → Evaluate pricing, stock, parameters
-3. read_datasheet      → Get detailed specs (pinout, electrical, package)
-4. check_design_fit    → Validate against your operating conditions
-5. find_alternative    → Find substitutes if needed
-6. compare_parts       → Side-by-side comparison of finalists
+1. search_parts / find_parts → candidates by part number, keyword or spec
+2. get_part_details          → parameters, package, pricing, stock
+3. read_datasheet            → "summary" first, then the sections you need
+4. check_design_fit          → your operating conditions against the ratings
+5. find_alternative          → substitutes, if needed
+6. compare_parts             → finalists side by side
+7. check_bom                 → lifecycle, stock and sourcing for the whole BOM
 ```
 
 ## Support
 
-- Email: [support@octoco.ltd](mailto:support@octoco.ltd)
+- Email: [support@sheetsdata.com](mailto:support@sheetsdata.com)
 - Issues: [github.com/octoco-ltd/sheetsdata-mcp/issues](https://github.com/octoco-ltd/sheetsdata-mcp/issues)
-- Website: [sheetsdata.com](https://sheetsdata.com)
+- Docs: [sheetsdata.com/help](https://sheetsdata.com/help)
 
 ## Disclaimer
 
-SheetsData is currently in **public beta**. Data is extracted from publicly available manufacturer datasheets using automated tools including AI. It may contain errors, omissions, or inaccuracies.
+Data is extracted from publicly available manufacturer datasheets by automated tools, including AI. It may contain errors, omissions or inaccuracies.
 
-**SheetsData and Octoco Ltd provide this data on an "as is" basis and make no warranties, express or implied, regarding the accuracy, completeness, or fitness for any particular purpose.** Always verify critical specifications against the official manufacturer datasheet before making design, purchasing, or manufacturing decisions.
+**SheetsData and Octoco Ltd provide this data on an "as is" basis and make no warranties, express or implied, regarding its accuracy, completeness or fitness for any particular purpose.** Always verify critical specifications against the official manufacturer datasheet before making design, purchasing or manufacturing decisions.
 
 By using this service, you acknowledge that:
 
 - Extracted data may differ from the original manufacturer datasheet
 - SheetsData is not a substitute for reviewing official documentation
 - Octoco Ltd is not liable for any damages, losses, or design failures arising from the use of this data
-- Features, APIs, and pricing are subject to change during the beta period
+- Features, APIs and pricing may change
 
 For terms of use, see [sheetsdata.com/terms](https://sheetsdata.com/terms).
 
 ## License
 
-MIT
+MIT (this repository: install configs, the npm proxy and the Claude Desktop bundle). The hosted service is covered by the [terms of use](https://sheetsdata.com/terms).

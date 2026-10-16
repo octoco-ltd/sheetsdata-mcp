@@ -9,6 +9,54 @@ Each release's section becomes its GitHub Release notes (see
 [RELEASING.md](RELEASING.md)). Notes for 1.3.2 and earlier are on the
 [releases page](https://github.com/octoco-ltd/sheetsdata-mcp/releases).
 
+## [1.4.0] - 2026-10-16
+
+The package still runs the same proxy to the hosted server; this
+release brings its listings and install docs up to date with the
+server's 14 tools.
+
+### Added
+
+- **Two tools in every listing.** `find_parts` finds parts by numeric
+  specs with units (for example `Vin >= 24 V`, `Iout >= 2 A`), package
+  or stock, and reports pass, fail or unknown for each constraint with
+  its source. `check_bom` checks up to 20 BOM lines for lifecycle,
+  stock against quantity, single-distributor sourcing, datasheet status
+  and stale prices. The Claude Desktop bundle, `mcp.json` and the
+  server card (`.well-known/mcp/server-card.json`) now list all 14
+  tools, and a test fails if those lists and the README's drift apart.
+- **Prices in the README**, per tool, as charged today, with the free
+  start: a new account gets $5 of credit without a card, and searching
+  is free.
+- **Install steps for more clients**, each checked against the
+  client's own documentation on 2026-10-16: ChatGPT, OpenAI Codex,
+  GitHub Copilot CLI, Gemini CLI, Google Antigravity, Goose, Roo Code,
+  Kiro, JetBrains Junie and AI Assistant, opencode, LM Studio and Warp,
+  beside Claude, Claude Code, Cursor, VS Code, Windsurf, Zed, Cline,
+  Continue and Amp.
+- The MCP Registry entry has a title, website and icons.
+
+### Fixed
+
+- **One-click install links work on GitHub.** GitHub drops `cursor://`
+  and `vscode:` links from rendered READMEs, so the Cursor and VS Code
+  badges did nothing. They now use the vendors' https install pages,
+  and there are links for VS Code Insiders and Kiro too.
+- **Zed** signs in with OAuth and takes the URL directly under
+  `context_servers` (the README had it under a `settings` key and said
+  Zed needed an API key). **Cline** adds the server from its Remote
+  Servers screen and signs in; its API-key entry needs
+  `"type": "streamableHttp"`, without which Cline assumes SSE.
+- **Windsurf** (now Devin Desktop) reads `serverUrl` from
+  `~/.config/devin/mcp_config.json`; **Continue** reads
+  `.continue/mcpServers/*.yaml` with `type: streamable-http` and the key
+  in Continue's secrets; **Claude**'s connectors live under
+  Customize → Connectors.
+
+### Changed
+
+- Support and author contact moved to sheetsdata.com addresses.
+
 ## [1.3.3] - 2026-10-13
 
 ### Fixed

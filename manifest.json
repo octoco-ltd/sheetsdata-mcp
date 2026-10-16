@@ -3,13 +3,13 @@
   "dxt_version": "0.2",
   "name": "sheetsdata",
   "display_name": "SheetsData",
-  "version": "1.3.3",
-  "description": "Electronic component datasheets for AI agents — specs, pinouts, package data on demand. No PDFs required.",
-  "long_description": "SheetsData gives AI agents instant, structured access to electronic component data. One tool call returns the pinout. Another returns electrical specs. No PDFs. No uploads. No context window stuffing.\n\nThis bundle proxies stdio↔Streamable HTTP so that Claude Desktop (and any MCP client that only speaks stdio) can connect to the hosted SheetsData MCP server at https://mcp.sheetsdata.com/mcp.",
+  "version": "1.4.0",
+  "description": "Electronic component datasheets for AI agents — pinouts, specs, package info and design checks from manufacturer PDFs.",
+  "long_description": "SheetsData gives AI agents structured access to electronic component data extracted from manufacturer datasheets: find parts by number or by spec, read any datasheet section as text and tables, compare parts, check a BOM, and check operating conditions against the absolute maximum and recommended ratings.\n\nThis bundle proxies stdio to Streamable HTTP so that Claude Desktop can connect to the hosted SheetsData MCP server at https://mcp.sheetsdata.com/mcp. Leave the API key blank to sign in with OAuth in your browser.\n\nSearching is free; other calls cost cents and come out of a prepaid balance. A new account starts with $5 of credit, no card needed. Prices: https://sheetsdata.com/pricing",
   "author": {
     "name": "Octoco Ltd",
     "url": "https://sheetsdata.com",
-    "email": "hello@sheetsdata.com"
+    "email": "team@sheetsdata.com"
   },
   "homepage": "https://sheetsdata.com",
   "documentation": "https://github.com/octoco-ltd/sheetsdata-mcp",
@@ -29,7 +29,9 @@
     "pcb",
     "eda",
     "firmware",
-    "engineering"
+    "engineering",
+    "bom",
+    "pinout"
   ],
   "compatibility": {
     "platforms": [
@@ -67,51 +69,59 @@
   "tools": [
     {
       "name": "search_parts",
-      "description": "Search for electronic components by part number or keyword across multiple distributors. Returns merged results with pricing and stock."
+      "description": "Find parts by part number or keyword across JLCPCB, Mouser and DigiKey, merged by MPN, with stock, price and datasheet status from each."
     },
     {
-      "name": "search_datasheets",
-      "description": "Semantic search across all extracted datasheets using natural language queries."
-    },
-    {
-      "name": "prefetch_datasheets",
-      "description": "Batch warm-up extraction for up to 20 parts. Fire-and-forget to reduce wait times."
-    },
-    {
-      "name": "check_extraction_status",
-      "description": "Poll extraction progress after prefetch or read_datasheet."
+      "name": "find_parts",
+      "description": "Find parts that meet numeric specs with units (e.g. Vin ≥ 24 V, Iout ≥ 2 A), package or stock; each check reports pass, fail or unknown with its source."
     },
     {
       "name": "get_part_details",
-      "description": "Full component details by MPN — pricing, stock, parameters from all providers."
+      "description": "A part's key parameters, package, pricing, stock and datasheet status, by MPN or LCSC number."
+    },
+    {
+      "name": "check_bom",
+      "description": "Check up to 20 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices."
+    },
+    {
+      "name": "prefetch_datasheets",
+      "description": "Start reading up to 20 datasheets at once, so a whole BOM is ready before you ask about it."
+    },
+    {
+      "name": "check_extraction_status",
+      "description": "Report how far a datasheet that is still being read has got."
     },
     {
       "name": "read_datasheet",
-      "description": "Extract structured datasheet sections (summary, pinout, electrical, package) or semantic search within a datasheet."
+      "description": "Any section of a datasheet as text and tables (summary, pinout, electrical, absolute maximum ratings, package, or any heading), or a search within one datasheet."
+    },
+    {
+      "name": "search_datasheets",
+      "description": "Search every datasheet read so far by meaning, e.g. 'LDO with PSRR above 70 dB'."
     },
     {
       "name": "compare_parts",
-      "description": "Compare 2-5 parts side by side with merged provider data."
-    },
-    {
-      "name": "check_design_fit",
-      "description": "Validate a part against operating conditions. Returns PASS/FAIL/WARNING per parameter."
+      "description": "Compare 2-5 parts side by side: parameters, package, pricing, stock and datasheet summaries."
     },
     {
       "name": "find_alternative",
-      "description": "Find alternative/substitute components with similar specs, same package, or compatible pinout."
+      "description": "Find drop-in and functional substitutes for a part, ranked by spec, package and stock match, with notes on each match."
+    },
+    {
+      "name": "check_design_fit",
+      "description": "Check operating conditions against the datasheet's absolute maximum and recommended ratings: PASS, WARNING or FAIL per condition, with the datasheet row it used."
     },
     {
       "name": "analyze_image",
-      "description": "Vision AI analysis of datasheet images — graphs, package drawings, pin diagrams."
+      "description": "Read values off a datasheet figure: a characteristic graph, package drawing or pin diagram."
     },
     {
       "name": "request_datasheet_upload",
-      "description": "Request a signed URL to upload a datasheet PDF when datasheet_status is 'no_source' or 'unsupported'."
+      "description": "Get a private signed upload link for a datasheet PDF we couldn't find (datasheet_status 'no_source' or 'unsupported'). Free; the fee is charged only on confirm."
     },
     {
       "name": "confirm_datasheet_upload",
-      "description": "Confirm a datasheet upload started via request_datasheet_upload. Verifies SHA-256 + PDF validity + MPN on first page, then charges the upload fee and queues extraction."
+      "description": "Verify an uploaded PDF (SHA-256, valid PDF, MPN on the first page), charge the upload fee and read it into your organisation's private library."
     }
   ],
   "tools_generated": false,
