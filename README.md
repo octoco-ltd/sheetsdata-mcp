@@ -164,7 +164,7 @@ Every client below was checked against its own documentation on 2026-10-16 (link
 <details>
 <summary>Use an API key instead</summary>
 
-In the custom connector dialog, add the request header `Authorization: Bearer YOUR_API_KEY`. Or, in Claude Desktop, open **Settings → Developer → Edit Config** and add the stdio proxy (needs Node.js; `claude_desktop_config.json` only starts local servers, so it cannot hold the remote URL):
+In the custom connector dialog, add the request header `Authorization: Bearer YOUR_API_KEY`. Or, in Claude Desktop, open **Settings → Developer → Edit Config** and add the stdio proxy (needs Node.js 20.18.1 or later; `claude_desktop_config.json` only starts local servers, so it cannot hold the remote URL):
 
 ```json
 {
@@ -600,7 +600,7 @@ Docs: [Warp MCP](https://docs.warp.dev/agents/capabilities/mcp/)
 
 ### Any client that only starts local servers
 
-The `@sheetsdata/mcp` package (Node.js 18+) proxies stdio to the hosted server. Without `SHEETSDATA_API_KEY` it opens your browser to sign in with OAuth and caches the token.
+The `@sheetsdata/mcp` package (Node.js 20.18.1 or later) proxies stdio to the hosted server. Without `SHEETSDATA_API_KEY` it opens your browser to sign in with OAuth and caches the token.
 
 ```json
 {

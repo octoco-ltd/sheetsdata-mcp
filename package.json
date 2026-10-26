@@ -37,6 +37,9 @@
     "release-notes": "node scripts/release-notes.mjs",
     "build-mcpb": "./scripts/build-mcpb.sh"
   },
+  "engines": {
+    "node": ">=20.18.1"
+  },
   "dependencies": {
     "mcp-remote": "0.1.38"
   },

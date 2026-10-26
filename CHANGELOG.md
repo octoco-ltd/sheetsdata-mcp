@@ -9,6 +9,18 @@ Each release's section becomes its GitHub Release notes (see
 [RELEASING.md](RELEASING.md)). Notes for 1.3.2 and earlier are on the
 [releases page](https://github.com/octoco-ltd/sheetsdata-mcp/releases).
 
+## [Unreleased]
+
+### Fixed
+
+- **Node.js requirement.** `npx @sheetsdata/mcp` needs Node.js 20.18.1
+  or later: the pinned mcp-remote loads undici 7, which fails on
+  Node 18 with `File is not defined`. The README said Node 18 was
+  enough; it now gives the real minimum, `package.json` declares it in
+  `engines` (npm's engine warning on an older Node now names
+  `@sheetsdata/mcp`), and the Claude Desktop bundle's manifest
+  declares it for Claude Desktop to check.
+
 ## [1.4.0] - 2026-10-16
 
 The package still runs the same proxy to the hosted server; this
