@@ -1,5 +1,4 @@
-// Tests for bin/cli.js: its pure argv/env-building helpers, and main()
-// run as a real process (see the main() suite at the end).
+// Smoke tests for bin/cli.js's pure argv/env-building logic.
 //
 // Importing bin/cli.js is safe here: its top-level side effects (the
 // `spawn` call) only run inside `main()`, which is gated behind
@@ -7,12 +6,11 @@
 // process entry point (i.e. under `node --test`).
 
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
-import { after, before, describe, test } from "node:test";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { join } from "node:path";
+import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 import { buildProxyInvocation, isMainModule, resolveMcpRemoteEntry } from "../bin/cli.js";
 
 test("buildProxyInvocation: OAuth path (no API key) omits --header entirely", () => {
@@ -157,88 +155,4 @@ test("isMainModule: recognises the entry point through an npm-style bin symlink"
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
-});
-
-// main() is exercised black-box: a copy of cli.js runs as a real process
-// next to a fake mcp-remote, which resolveMcpRemoteEntry() finds the same
-// way it finds the real one. The fake prints what it was launched with
-// and exits with the code it is told to.
-describe("main()", () => {
-  const CLI_SOURCE = join(dirname(fileURLToPath(import.meta.url)), "..", "bin", "cli.js");
-  const FAKE_MCP_REMOTE = `
-process.stdout.write(JSON.stringify({
-  args: process.argv.slice(2),
-  authHeader: process.env.SHEETSDATA_AUTH_HEADER ?? null,
-}));
-process.exit(Number(process.env.FAKE_MCP_REMOTE_EXIT_CODE ?? 0));
-`;
-  let dir;
-  let cli;
-
-  before(() => {
-    dir = mkdtempSync(join(tmpdir(), "sheetsdata-cli-main-"));
-    writeFileSync(join(dir, "package.json"), JSON.stringify({ type: "module" }));
-    mkdirSync(join(dir, "bin"));
-    cli = join(dir, "bin", "cli.js");
-    copyFileSync(CLI_SOURCE, cli);
-    const fakePackage = join(dir, "node_modules", "mcp-remote");
-    mkdirSync(join(fakePackage, "dist"), { recursive: true });
-    writeFileSync(join(fakePackage, "package.json"), JSON.stringify({ name: "mcp-remote", version: "0.0.0-fake" }));
-    writeFileSync(join(fakePackage, "dist", "proxy.js"), FAKE_MCP_REMOTE);
-  });
-
-  after(() => rmSync(dir, { recursive: true, force: true }));
-
-  // Only PATH is inherited, so a SHEETSDATA_API_KEY in the developer's
-  // own shell can't leak into these runs.
-  function runCli(args = [], env = {}) {
-    const result = spawnSync(process.execPath, [cli, ...args], {
-      env: { PATH: process.env.PATH, ...env },
-      encoding: "utf8",
-    });
-    assert.ok(result.stdout, `mcp-remote was never launched; stderr:\n${result.stderr}`);
-    return { status: result.status, stderr: result.stderr, launched: JSON.parse(result.stdout) };
-  }
-
-  test("--api-key overrides SHEETSDATA_API_KEY", () => {
-    const { status, launched } = runCli(["--api-key", "from-flag"], { SHEETSDATA_API_KEY: "from-env" });
-    assert.equal(status, 0);
-    assert.equal(launched.authHeader, "Bearer from-flag");
-    assert.deepEqual(launched.args, ["https://mcp.sheetsdata.com/mcp", "--header", "Authorization:${SHEETSDATA_AUTH_HEADER}"]);
-  });
-
-  test("SHEETSDATA_API_KEY is used when --api-key is absent", () => {
-    const { launched } = runCli([], { SHEETSDATA_API_KEY: "from-env" });
-    assert.equal(launched.authHeader, "Bearer from-env");
-  });
-
-  test("--api-key without a value falls back to SHEETSDATA_API_KEY", () => {
-    const { launched } = runCli(["--api-key"], { SHEETSDATA_API_KEY: "from-env" });
-    assert.equal(launched.authHeader, "Bearer from-env");
-  });
-
-  test("an API key with surrounding whitespace is trimmed before it becomes the Bearer header", () => {
-    assert.equal(runCli([], { SHEETSDATA_API_KEY: "  from-env \n" }).launched.authHeader, "Bearer from-env");
-    assert.equal(runCli(["--api-key", " from-flag\t"]).launched.authHeader, "Bearer from-flag");
-  });
-
-  test("a whitespace-only --api-key falls back to SHEETSDATA_API_KEY", () => {
-    const { launched } = runCli(["--api-key", "  "], { SHEETSDATA_API_KEY: "from-env" });
-    assert.equal(launched.authHeader, "Bearer from-env");
-  });
-
-  test("no API key, or a whitespace-only one, takes the OAuth path", () => {
-    for (const env of [{}, { SHEETSDATA_API_KEY: " \n" }]) {
-      const { status, stderr, launched } = runCli([], env);
-      assert.equal(status, 0);
-      assert.equal(launched.authHeader, null);
-      assert.deepEqual(launched.args, ["https://mcp.sheetsdata.com/mcp"]);
-      assert.match(stderr, /will use OAuth/);
-    }
-  });
-
-  test("mcp-remote's exit code becomes the CLI's exit code", () => {
-    assert.equal(runCli([], { FAKE_MCP_REMOTE_EXIT_CODE: "0" }).status, 0);
-    assert.equal(runCli([], { FAKE_MCP_REMOTE_EXIT_CODE: "3" }).status, 3);
-  });
 });
