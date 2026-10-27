@@ -217,14 +217,24 @@ process.exit(Number(process.env.FAKE_MCP_REMOTE_EXIT_CODE ?? 0));
     assert.equal(launched.authHeader, "Bearer from-env");
   });
 
+  test("an API key with surrounding whitespace is trimmed before it becomes the Bearer header", () => {
+    assert.equal(runCli([], { SHEETSDATA_API_KEY: "  from-env \n" }).launched.authHeader, "Bearer from-env");
+    assert.equal(runCli(["--api-key", " from-flag\t"]).launched.authHeader, "Bearer from-flag");
+  });
 
+  test("a whitespace-only --api-key falls back to SHEETSDATA_API_KEY", () => {
+    const { launched } = runCli(["--api-key", "  "], { SHEETSDATA_API_KEY: "from-env" });
+    assert.equal(launched.authHeader, "Bearer from-env");
+  });
 
-  test("no API key takes the OAuth path", () => {
-    const { status, stderr, launched } = runCli();
-    assert.equal(status, 0);
-    assert.equal(launched.authHeader, null);
-    assert.deepEqual(launched.args, ["https://mcp.sheetsdata.com/mcp"]);
-    assert.match(stderr, /will use OAuth/);
+  test("no API key, or a whitespace-only one, takes the OAuth path", () => {
+    for (const env of [{}, { SHEETSDATA_API_KEY: " \n" }]) {
+      const { status, stderr, launched } = runCli([], env);
+      assert.equal(status, 0);
+      assert.equal(launched.authHeader, null);
+      assert.deepEqual(launched.args, ["https://mcp.sheetsdata.com/mcp"]);
+      assert.match(stderr, /will use OAuth/);
+    }
   });
 
   test("mcp-remote's exit code becomes the CLI's exit code", () => {

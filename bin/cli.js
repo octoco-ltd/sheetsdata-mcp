@@ -109,12 +109,13 @@ export function buildProxyInvocation({ mcpRemoteEntry, apiKey, url = MCP_URL }) 
 }
 
 function main() {
-  // Parse --api-key flag
-  let apiKey = process.env.SHEETSDATA_API_KEY || "";
+  // --api-key wins over SHEETSDATA_API_KEY. Both are trimmed, as
+  // bundle/index.js does: a key pasted with a trailing newline would
+  // otherwise become a malformed Bearer header, and a whitespace-only
+  // value means "no key".
   const keyIdx = process.argv.indexOf("--api-key");
-  if (keyIdx !== -1 && process.argv[keyIdx + 1]) {
-    apiKey = process.argv[keyIdx + 1];
-  }
+  const flagKey = keyIdx === -1 ? "" : (process.argv[keyIdx + 1] ?? "").trim();
+  const apiKey = flagKey || (process.env.SHEETSDATA_API_KEY ?? "").trim();
 
   if (!apiKey) {
     console.error(
