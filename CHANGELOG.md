@@ -20,6 +20,13 @@ Each release's section becomes its GitHub Release notes (see
   `engines` (npm's engine warning on an older Node now names
   `@sheetsdata/mcp`), and the Claude Desktop bundle's manifest
   declares it for Claude Desktop to check.
+- **API key whitespace.** `npx @sheetsdata/mcp` now trims the API key
+  from `--api-key` and `SHEETSDATA_API_KEY`, as the Claude Desktop
+  bundle already did. A key pasted with a trailing newline or space no
+  longer produces a malformed `Authorization` header, and a
+  whitespace-only key now means "no key": a whitespace-only `--api-key`
+  falls back to `SHEETSDATA_API_KEY`, and with neither set the CLI uses
+  OAuth.
 
 ## [1.4.0] - 2026-10-16
 
