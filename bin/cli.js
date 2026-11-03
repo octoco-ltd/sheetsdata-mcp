@@ -4,9 +4,9 @@
  * SheetsData MCP — thin proxy to the hosted MCP server.
  *
  * Usage:
- *   npx sheetsdata-mcp                        # OAuth (browser login)
- *   npx sheetsdata-mcp --api-key <key>        # API key
- *   SHEETSDATA_API_KEY=<key> npx sheetsdata-mcp
+ *   npx -y @sheetsdata/mcp                    # OAuth (browser login)
+ *   npx -y @sheetsdata/mcp --api-key <key>    # API key
+ *   SHEETSDATA_API_KEY=<key> npx -y @sheetsdata/mcp
  *
  * When no API key is provided, mcp-remote handles OAuth automatically —
  * it opens a browser tab for you to authorize, then caches the token.
