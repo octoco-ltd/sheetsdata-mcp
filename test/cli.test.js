@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildProxyInvocation, isMainModule, resolveMcpRemoteEntry } from "../bin/cli.js";
+import { buildProxyInvocation, exitStatusFor, isMainModule, resolveMcpRemoteEntry } from "../bin/cli.js";
 
 test("buildProxyInvocation: OAuth path (no API key) omits --header entirely", () => {
   const invocation = buildProxyInvocation({
@@ -134,6 +134,21 @@ test("resolveMcpRemoteEntry: resolves the real, installed mcp-remote dependency"
     entry.endsWith("proxy.js") || entry.endsWith("index.js"),
     `unexpected resolved entry: ${entry}`
   );
+});
+
+test("exitStatusFor: mcp-remote's exit code passes through unchanged", () => {
+  assert.equal(exitStatusFor(0, null), 0);
+  assert.equal(exitStatusFor(1, null), 1);
+});
+
+test("exitStatusFor: a mcp-remote killed by a signal is a non-zero 128 + signal number", () => {
+  // SIGTERM is 15 and SIGKILL 9 on every platform Node runs on.
+  assert.equal(exitStatusFor(null, "SIGTERM"), 143);
+  assert.equal(exitStatusFor(null, "SIGKILL"), 137);
+});
+
+test("exitStatusFor: an unknown signal name is still a failure, never 0", () => {
+  assert.equal(exitStatusFor(null, "SIGNOTREAL"), 1);
 });
 
 test("isMainModule: recognises the entry point through an npm-style bin symlink", () => {

@@ -27,6 +27,12 @@ Each release's section becomes its GitHub Release notes (see
   whitespace-only key now means "no key": a whitespace-only `--api-key`
   falls back to `SHEETSDATA_API_KEY`, and with neither set the CLI uses
   OAuth.
+- **Exit status and stop signals.** `npx @sheetsdata/mcp` and the
+  Claude Desktop bundle now pass SIGINT and SIGTERM on to
+  mcp-remote and exit when it does, so a client that stops the server
+  also stops mcp-remote. When mcp-remote is killed by a signal (a
+  crash or an out-of-memory kill), they exit with 128 plus the signal
+  number, as a shell does, instead of reporting a clean exit 0.
 
 ## [1.4.0] - 2026-10-16
 

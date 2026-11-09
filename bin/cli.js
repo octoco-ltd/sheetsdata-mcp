@@ -42,6 +42,7 @@
 import { spawn } from "node:child_process";
 import { realpathSync } from "node:fs";
 import { createRequire } from "node:module";
+import { constants as osConstants } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const MCP_URL = "https://mcp.sheetsdata.com/mcp";
@@ -108,6 +109,28 @@ export function buildProxyInvocation({ mcpRemoteEntry, apiKey, url = MCP_URL }) 
   return { command: process.execPath, args, env };
 }
 
+/**
+ * The exit status that reports how mcp-remote ended, from the
+ * `(code, signal)` pair Node passes to a child's "exit" event. Exactly
+ * one of the two is non-null. A child killed by a signal (crashed,
+ * OOM-killed, or stopped by us) maps to 128 + the signal number, the
+ * status a shell reports for it, so the MCP client never sees such a
+ * death as a clean exit 0.
+ */
+export function exitStatusFor(code, signal) {
+  if (code !== null) return code;
+  const signalNumber = osConstants.signals[signal];
+  return signalNumber ? 128 + signalNumber : 1;
+}
+
+// Signals an MCP client (or a terminal) uses to stop the server. The
+// wrapper passes them on to mcp-remote and waits for it to exit,
+// instead of dying on Node's default handler and leaving mcp-remote
+// running without being told to stop. Not SIGHUP: Node on Windows
+// emits it when the console closes, and child.kill("SIGHUP") throws
+// there.
+const FORWARDED_SIGNALS = ["SIGINT", "SIGTERM"];
+
 function main() {
   // --api-key wins over SHEETSDATA_API_KEY. Both are trimmed, as
   // bundle/index.js does: a key pasted with a trailing newline would
@@ -138,7 +161,10 @@ function main() {
     env: { ...process.env, ...invocation.env },
   });
 
-  child.on("exit", (code) => process.exit(code ?? 0));
+  for (const signal of FORWARDED_SIGNALS) {
+    process.on(signal, () => child.kill(signal));
+  }
+  child.on("exit", (code, signal) => process.exit(exitStatusFor(code, signal)));
   child.on("error", (err) => {
     console.error("Failed to start mcp-remote:", err.message);
     process.exit(1);
