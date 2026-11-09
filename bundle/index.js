@@ -24,6 +24,7 @@
 
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import { constants as osConstants } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -72,7 +73,19 @@ const child = spawn(process.execPath, args, {
   env: childEnv,
 });
 
-child.on("exit", (code) => process.exit(code ?? 0));
+// Same exit status and signal forwarding as bin/cli.js (see
+// exitStatusFor there): a mcp-remote killed by a signal exits us with
+// 128 + its number, not 0, and mcp-remote is told to stop when we are.
+function exitStatusFor(code, signal) {
+  if (code !== null) return code;
+  const signalNumber = osConstants.signals[signal];
+  return signalNumber ? 128 + signalNumber : 1;
+}
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => child.kill(signal));
+}
+child.on("exit", (code, signal) => process.exit(exitStatusFor(code, signal)));
 child.on("error", (err) => {
   console.error("[sheetsdata-mcp] Failed to start mcp-remote:", err.message);
   process.exit(1);
