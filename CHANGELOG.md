@@ -11,8 +11,23 @@ Each release's section becomes its GitHub Release notes (see
 
 ## [Unreleased]
 
+### Changed
+
+- **`--api-key` is discouraged in favour of `SHEETSDATA_API_KEY`.** A
+  key passed on the command line is visible to other local users in
+  `ps` and is saved in shell history, which contradicted the README's
+  "never on the command line". `npx @sheetsdata/mcp --api-key KEY` still
+  works but now prints a one-line warning on stderr naming
+  `SHEETSDATA_API_KEY`; the README and the usage text lead with the
+  environment variable.
+
 ### Fixed
 
+- **`--api-key` parsing.** `--api-key=KEY` is now accepted (it was
+  ignored, and the CLI silently fell back to OAuth). `--api-key` with
+  no value, or followed by another flag such as `--api-key --foo`, now
+  stops with an error and exit status 1 instead of taking the flag as
+  the key or quietly using OAuth.
 - **Node.js requirement.** `npx @sheetsdata/mcp` needs Node.js 20.18.1
   or later: the pinned mcp-remote loads undici 7, which fails on
   Node 18 with `File is not defined`. The README said Node 18 was
