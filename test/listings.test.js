@@ -60,3 +60,12 @@ test("every listing points at the same server URL", () => {
     [url],
   );
 });
+
+// Glama lists the hosted server as a connector under its MCP Registry
+// name, separately from the repository's server listing, and directories
+// such as awesome-remote-mcp-servers check the README links back to it.
+test("the README links to the Glama connector listing for server.json's name", () => {
+  const listing = `https://glama.ai/mcp/connectors/${readJson("server.json").name}`;
+  const badge = `[![SheetsData MCP connector](${listing}/badges/score.svg)](${listing})`;
+  assert.ok(read("README.md").includes(badge), `README has no badge linking to ${listing}`);
+});
