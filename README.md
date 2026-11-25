@@ -1,6 +1,6 @@
 # SheetsData MCP
 
-[![npm](https://img.shields.io/npm/v/@sheetsdata/mcp)](https://www.npmjs.com/package/@sheetsdata/mcp) [![MCP Badge](https://lobehub.com/badge/mcp/octoco-ltd-sheetsdata-mcp)](https://lobehub.com/mcp/octoco-ltd-sheetsdata-mcp) [![sheetsdata-mcp MCP server](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp/badges/score.svg)](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp)
+[![npm](https://img.shields.io/npm/v/@sheetsdata/mcp)](https://www.npmjs.com/package/@sheetsdata/mcp) [![MCP Badge](https://lobehub.com/badge/mcp/octoco-ltd-sheetsdata-mcp)](https://lobehub.com/mcp/octoco-ltd-sheetsdata-mcp) [![sheetsdata-mcp MCP server](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp/badges/score.svg)](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp) [![SheetsData MCP connector](https://glama.ai/mcp/connectors/io.github.octoco-ltd/sheetsdata-mcp/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.octoco-ltd/sheetsdata-mcp)
 
 [![sheetsdata-mcp MCP server](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp/badges/card.svg)](https://glama.ai/mcp/servers/octoco-ltd/sheetsdata-mcp)
 
