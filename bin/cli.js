@@ -5,8 +5,10 @@
  *
  * Usage:
  *   npx -y @sheetsdata/mcp                    # OAuth (browser login)
- *   npx -y @sheetsdata/mcp --api-key <key>    # API key
- *   SHEETSDATA_API_KEY=<key> npx -y @sheetsdata/mcp
+ *   SHEETSDATA_API_KEY=<key> npx -y @sheetsdata/mcp    # API key (preferred)
+ *   npx -y @sheetsdata/mcp --api-key <key>    # API key; visible in `ps`
+ *                                             # and shell history, so
+ *                                             # prefer the env var
  *
  * When no API key is provided, mcp-remote handles OAuth automatically —
  * it opens a browser tab for you to authorize, then caches the token.
@@ -131,19 +133,84 @@ export function exitStatusFor(code, signal) {
 // there.
 const FORWARDED_SIGNALS = ["SIGINT", "SIGTERM"];
 
+/**
+ * Work out the API key from the command line and the environment. Pure
+ * function — no I/O, no process access — so it's cheap to unit test.
+ *
+ * `--api-key KEY` and `--api-key=KEY` are both accepted, and the flag
+ * wins over `SHEETSDATA_API_KEY`. Both sources are trimmed, as
+ * bundle/index.js does: a key pasted with a trailing newline would
+ * otherwise become a malformed Bearer header, and a whitespace-only
+ * value means "no key". `--api-key` with no value after it, or with
+ * another flag (`--something`) where the value should be, is an
+ * error rather than silently taking that flag as the key.
+ *
+ * Returns `{ apiKey, flagUsed, error }`. `apiKey` is "" when no key
+ * is set (the OAuth path); `flagUsed` is true when `--api-key`
+ * carried a non-blank value, so the caller can warn that the key is
+ * on the command line; `error` is a message to print before exiting
+ * non-zero, or `null`.
+ */
+export function resolveApiKey({ argv = [], env = {} } = {}) {
+  let flagKey = "";
+  let missingValue = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--api-key") {
+      const value = argv[i + 1];
+      if (value === undefined || value.startsWith("--")) {
+        missingValue = true;
+      } else {
+        flagKey = value.trim();
+      }
+      break;
+    }
+    if (arg.startsWith("--api-key=")) {
+      flagKey = arg.slice("--api-key=".length).trim();
+      break;
+    }
+  }
+
+  if (missingValue) {
+    return {
+      apiKey: "",
+      flagUsed: false,
+      error:
+        "--api-key needs a value: pass --api-key <key> or --api-key=<key>, " +
+        "or set SHEETSDATA_API_KEY (preferred).",
+    };
+  }
+
+  const apiKey = flagKey || String(env.SHEETSDATA_API_KEY ?? "").trim();
+  return { apiKey, flagUsed: flagKey !== "", error: null };
+}
+
 function main() {
-  // --api-key wins over SHEETSDATA_API_KEY. Both are trimmed, as
-  // bundle/index.js does: a key pasted with a trailing newline would
-  // otherwise become a malformed Bearer header, and a whitespace-only
-  // value means "no key".
-  const keyIdx = process.argv.indexOf("--api-key");
-  const flagKey = keyIdx === -1 ? "" : (process.argv[keyIdx + 1] ?? "").trim();
-  const apiKey = flagKey || (process.env.SHEETSDATA_API_KEY ?? "").trim();
+  const { apiKey, flagUsed, error } = resolveApiKey({
+    argv: process.argv.slice(2),
+    env: process.env,
+  });
+
+  if (error) {
+    console.error(error);
+    process.exit(1);
+    return;
+  }
+
+  if (flagUsed) {
+    console.error(
+      "Warning: --api-key puts your API key on the command line, where other " +
+        "local users can read it with `ps` and it is saved in shell history. " +
+        "Set SHEETSDATA_API_KEY instead.\n"
+    );
+  }
 
   if (!apiKey) {
     console.error(
       "No API key set — will use OAuth (a browser tab will open to authorize).\n" +
-        "To use an API key instead, set SHEETSDATA_API_KEY or pass --api-key <key>\n"
+        "To use an API key instead, set SHEETSDATA_API_KEY (or pass --api-key <key>,\n" +
+        "which is visible to other local users)\n"
     );
   }
 

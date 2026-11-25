@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildProxyInvocation, exitStatusFor, isMainModule, resolveMcpRemoteEntry } from "../bin/cli.js";
+import { buildProxyInvocation, exitStatusFor, isMainModule, resolveApiKey, resolveMcpRemoteEntry } from "../bin/cli.js";
 
 test("buildProxyInvocation: OAuth path (no API key) omits --header entirely", () => {
   const invocation = buildProxyInvocation({
@@ -136,6 +136,60 @@ test("resolveMcpRemoteEntry: resolves the real, installed mcp-remote dependency"
   );
 });
 
+test("resolveApiKey: no key anywhere means no key (OAuth)", () => {
+  assert.deepEqual(resolveApiKey({ argv: [], env: {} }), { apiKey: "", flagUsed: false, error: null });
+});
+
+test("resolveApiKey: SHEETSDATA_API_KEY is used and trimmed", () => {
+  const result = resolveApiKey({ argv: [], env: { SHEETSDATA_API_KEY: "  from-env \n" } });
+  assert.deepEqual(result, { apiKey: "from-env", flagUsed: false, error: null });
+});
+
+test("resolveApiKey: a whitespace-only env key is no key", () => {
+  assert.equal(resolveApiKey({ argv: [], env: { SHEETSDATA_API_KEY: " \n\t" } }).apiKey, "");
+});
+
+test("resolveApiKey: accepts the two-token form --api-key KEY", () => {
+  const result = resolveApiKey({ argv: ["--api-key", " abc "], env: {} });
+  assert.deepEqual(result, { apiKey: "abc", flagUsed: true, error: null });
+});
+
+test("resolveApiKey: accepts the --api-key=KEY form", () => {
+  const result = resolveApiKey({ argv: ["--api-key=abc"], env: {} });
+  assert.deepEqual(result, { apiKey: "abc", flagUsed: true, error: null });
+  assert.equal(resolveApiKey({ argv: ["--api-key= abc\n"], env: {} }).apiKey, "abc");
+});
+
+test("resolveApiKey: the flag wins over the environment", () => {
+  for (const argv of [["--api-key", "flag"], ["--api-key=flag"]]) {
+    assert.equal(resolveApiKey({ argv, env: { SHEETSDATA_API_KEY: "env" } }).apiKey, "flag");
+  }
+});
+
+test("resolveApiKey: a blank flag value falls back to the environment, without flagging it as used", () => {
+  for (const argv of [["--api-key", "  "], ["--api-key="]]) {
+    const result = resolveApiKey({ argv, env: { SHEETSDATA_API_KEY: "env" } });
+    assert.deepEqual(result, { apiKey: "env", flagUsed: false, error: null });
+  }
+});
+
+test("resolveApiKey: --api-key as the last argument is an error", () => {
+  const result = resolveApiKey({ argv: ["--api-key"], env: { SHEETSDATA_API_KEY: "env" } });
+  assert.equal(result.apiKey, "");
+  assert.match(result.error, /--api-key needs a value/);
+});
+
+test("resolveApiKey: --api-key followed by another flag is an error, not a key", () => {
+  const result = resolveApiKey({ argv: ["--api-key", "--foo"], env: {} });
+  assert.equal(result.apiKey, "");
+  assert.match(result.error, /--api-key needs a value/);
+});
+
+test("resolveApiKey: unrelated arguments are ignored", () => {
+  const result = resolveApiKey({ argv: ["--foo", "bar"], env: { SHEETSDATA_API_KEY: "env" } });
+  assert.deepEqual(result, { apiKey: "env", flagUsed: false, error: null });
+});
+
 test("exitStatusFor: mcp-remote's exit code passes through unchanged", () => {
   assert.equal(exitStatusFor(0, null), 0);
   assert.equal(exitStatusFor(1, null), 1);
@@ -235,9 +289,38 @@ process.exitCode = Number(process.env.FAKE_MCP_REMOTE_EXIT_CODE ?? 0);
     assert.equal(launched.authHeader, "Bearer from-env");
   });
 
-  test("--api-key without a value falls back to SHEETSDATA_API_KEY", () => {
-    const { launched } = runCli(["--api-key"], { SHEETSDATA_API_KEY: "from-env" });
-    assert.equal(launched.authHeader, "Bearer from-env");
+  test("--api-key=KEY is accepted, as is the two-token form", () => {
+    const { status, launched } = runCli(["--api-key=from-flag"], { SHEETSDATA_API_KEY: "from-env" });
+    assert.equal(status, 0);
+    assert.equal(launched.authHeader, "Bearer from-flag");
+  });
+
+  test("--api-key warns on stderr that the key is visible and names SHEETSDATA_API_KEY", () => {
+    for (const args of [["--api-key", "from-flag"], ["--api-key=from-flag"]]) {
+      const { status, stderr, launched } = runCli(args);
+      assert.equal(status, 0);
+      assert.equal(launched.authHeader, "Bearer from-flag");
+      assert.match(stderr, /--api-key puts your API key on the command line/);
+      assert.match(stderr, /SHEETSDATA_API_KEY/);
+      assert.ok(!stderr.includes("from-flag"), "the warning must not echo the key");
+    }
+  });
+
+  test("the environment variable path prints no command-line warning", () => {
+    const { stderr } = runCli([], { SHEETSDATA_API_KEY: "from-env" });
+    assert.doesNotMatch(stderr, /command line/);
+  });
+
+  test("--api-key without a value, or followed by another flag, exits 1 without launching mcp-remote", () => {
+    for (const args of [["--api-key"], ["--api-key", "--foo"]]) {
+      const result = spawnSync(process.execPath, [cli, ...args], {
+        env: { ...process.env, SHEETSDATA_API_KEY: "from-env" },
+        encoding: "utf8",
+      });
+      assert.equal(result.status, 1);
+      assert.equal(result.stdout, "");
+      assert.match(result.stderr, /--api-key needs a value/);
+    }
   });
 
   test("an API key with surrounding whitespace is trimmed before it becomes the Bearer header", () => {

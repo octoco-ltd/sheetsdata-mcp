@@ -614,7 +614,7 @@ The `@sheetsdata/mcp` package (Node.js 20.18.1 or later) proxies stdio to the ho
 }
 ```
 
-From a shell: `SHEETSDATA_API_KEY=YOUR_API_KEY npx -y @sheetsdata/mcp`, or `npx -y @sheetsdata/mcp --api-key YOUR_API_KEY`.
+From a shell: `SHEETSDATA_API_KEY=YOUR_API_KEY npx -y @sheetsdata/mcp`. Prefer the environment variable: a key passed as `--api-key` is visible to other users on the machine in `ps` and is saved in your shell history, so the proxy prints a warning when you use it.
 
 ### Your own code
 
