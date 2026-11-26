@@ -87,10 +87,24 @@ function startProxy({ url, apiKey, home }) {
       pending.delete(message.id);
     }
   });
+  // A proxy that exits or stalls fails the pending request, so the test
+  // reaches its cleanup instead of hanging on an open pipe.
+  child.on("exit", (code, signal) => {
+    for (const [id, settle] of pending) settle({ id, exited: { code, signal } });
+    pending.clear();
+  });
   const send = (message) => child.stdin.write(`${JSON.stringify(message)}\n`);
   const request = (id, method, params = {}) =>
-    new Promise((resolve) => {
-      pending.set(id, resolve);
+    new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error(`no answer to ${method} within 15 s; proxy stderr:\n${stderr}`));
+      }, 15_000);
+      pending.set(id, (message) => {
+        clearTimeout(timer);
+        if (message.exited) reject(new Error(`proxy exited during ${method}: ${JSON.stringify(message.exited)}\n${stderr}`));
+        else resolve(message);
+      });
       send({ jsonrpc: "2.0", id, method, params });
     });
   return { child, send, request, stderr: () => stderr };
@@ -123,8 +137,10 @@ describe("the pinned mcp-remote against a 2025-11-25 server", () => {
       const list = await proxy.request(2, "tools/list");
       return { init, list, stderr: proxy.stderr() };
     } finally {
-      proxy.child.kill("SIGTERM");
-      await once(proxy.child, "exit");
+      if (proxy.child.exitCode === null && proxy.child.signalCode === null) {
+        proxy.child.kill("SIGTERM");
+        await once(proxy.child, "exit");
+      }
     }
   }
 

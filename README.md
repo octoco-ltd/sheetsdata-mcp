@@ -100,7 +100,7 @@ Built-in prompts that walk the agent through common hardware tasks:
 
 ## Pricing
 
-Finding parts and getting datasheets ready to read are free; a datasheet answer is 2¢ and an AI check 5¢. Every plan includes a month of usage.
+Finding parts and getting datasheets ready to read are free; a datasheet answer is 2¢ and an AI check 5¢. Each plan's monthly price is spent as usage.
 
 - **Free** is $0 with no card: $2 of usage every month, refilled, and up to 10 new datasheets a day (datasheets already read are unlimited). It stops at $2 rather than charging you.
 - **Pro** is $20 a month, all of it usage (about 1,000 datasheet answers): no daily cap on new datasheets, a private parts library, and list prices past $20 up to a spend cap you set.

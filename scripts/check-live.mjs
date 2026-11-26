@@ -9,8 +9,10 @@
  * its description starts with ("Free." or "Costs 2¢ per call."). This
  * reads them with the calls a client makes before signing in
  * (`initialize`, then `tools/list`, `prompts/list` and
- * `resources/list`; no tool is called) and reports every difference
- * from manifest.json, mcp.json and the README's Tools table.
+ * `resources/list`; no tool is called) and reports tool names that
+ * differ from manifest.json's, prompt and resource names that differ
+ * from mcp.json's, and prices that differ from the README's Tools
+ * table. Descriptions are not compared: the listings paraphrase them.
  *
  * test/listings.test.js keeps the repo's listings consistent with each
  * other; this keeps them consistent with the server. It needs the
