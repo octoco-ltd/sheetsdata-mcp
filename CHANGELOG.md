@@ -23,6 +23,11 @@ Each release's section becomes its GitHub Release notes (see
   server speaks 2025-11-25 and answers that mode's probe with 401,
   which would send every start without a cached token to a browser
   sign-in, even just to list tools.
+- **Prices and limits match the hosted server.** Most calls now cost
+  2¢ (datasheet answers) or 5¢ (AI checks), `get_part_details` and
+  `prefetch_datasheets` are free, the upload fee is 10¢, and
+  `check_bom` takes up to 50 lines. The README's plans are the current
+  Free, Pro and Team.
 
 ### Fixed
 

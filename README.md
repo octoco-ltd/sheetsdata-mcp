@@ -60,18 +60,18 @@ Prices are per call and the same on every plan. A call that fails is not charged
 |------|------:|--------------|
 | `search_parts` | Free | Find parts by part number or keyword across JLCPCB, Mouser and DigiKey, merged by MPN, with stock, price and datasheet status from each. |
 | `find_parts` | Free | Find parts that meet numeric specs with units (e.g. Vin ≥ 24 V, Iout ≥ 2 A), package or stock; each constraint reports pass, fail or unknown with its source. |
-| `get_part_details` | 3¢ | A part's key parameters, package, pricing, stock and datasheet status, by MPN or LCSC number. |
-| `check_bom` | 3¢ | Check up to 20 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices. |
-| `prefetch_datasheets` | 1¢ | Start reading up to 20 datasheets at once, so a whole BOM is ready before you ask about it. |
+| `get_part_details` | Free | A part's key parameters, package, pricing, stock and datasheet status, by MPN or LCSC number. |
+| `check_bom` | 2¢ | Check up to 50 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices. |
+| `prefetch_datasheets` | Free | Start reading up to 20 datasheets at once, so a whole BOM is ready before you ask about it. |
 | `check_extraction_status` | Free | Report how far a datasheet that is still being read has got. |
-| `read_datasheet` | 10¢ | Any section of a datasheet as text and tables (summary, pinout, electrical, absolute maximum ratings, package, or any heading), or a search within one datasheet. |
+| `read_datasheet` | 2¢ | Any section of a datasheet as text and tables (summary, pinout, electrical, absolute maximum ratings, package, or any heading), or a search within one datasheet. |
 | `search_datasheets` | 2¢ | Search every datasheet read so far by meaning, e.g. "LDO with PSRR above 70 dB". |
-| `compare_parts` | 8¢ | Compare 2–5 parts side by side: parameters, package, pricing, stock and datasheet summaries. |
-| `find_alternative` | 6¢ | Find drop-in and functional substitutes for a part, ranked by spec, package and stock match. |
-| `check_design_fit` | 12¢ | Check operating conditions against the absolute maximum and recommended ratings: PASS, WARNING or FAIL per condition, with the datasheet row it used. |
-| `analyze_image` | 10¢ | Read values off a datasheet figure: a characteristic graph, package drawing or pin diagram. |
+| `compare_parts` | 2¢ | Compare 2–5 parts side by side: parameters, package, pricing, stock and datasheet summaries. |
+| `find_alternative` | 2¢ | Find drop-in and functional substitutes for a part, ranked by spec, package and stock match. |
+| `check_design_fit` | 5¢ | Check operating conditions against the absolute maximum and recommended ratings: PASS, WARNING or FAIL per condition, with the datasheet row it used. |
+| `analyze_image` | 5¢ | Read values off a datasheet figure: a characteristic graph, package drawing or pin diagram. |
 | `request_datasheet_upload` | Free | Get a private upload link for a datasheet PDF we couldn't find. |
-| `confirm_datasheet_upload` | 50¢ | Verify the uploaded PDF (hash, valid PDF, MPN on page one) and read it into your organisation's private library. Not charged if the file fails the checks. |
+| `confirm_datasheet_upload` | 10¢ | Verify the uploaded PDF (hash, valid PDF, MPN on page one) and read it into your organisation's private library. Not charged if the file fails the checks. |
 
 Pass manufacturer part numbers (`TPS54302`, `STM32F446RCT6`) or LCSC numbers (`C2837938`), not values like `100nF` or reference designators like `R1`. A datasheet nobody has asked for yet is read on first request (poll `check_extraction_status`); after that it is cached for everyone.
 
@@ -100,9 +100,11 @@ Built-in prompts that walk the agent through common hardware tasks:
 
 ## Pricing
 
-- **Free to start.** A new account gets $5 of credit, no card needed ($20 more when you add a card). Searching (`search_parts`, `find_parts`) is free.
-- **Trial** is pay as you go from a prepaid balance: 5 new datasheets a day (datasheets already read are unlimited), 30 requests a minute.
-- **Pro** is $39 a month minimum, with your calls counting toward it: no daily cap on new datasheets, higher rate limits and a private parts library.
+Finding parts and getting datasheets ready to read are free; a datasheet answer is 2¢ and an AI check 5¢. Every plan includes a month of usage.
+
+- **Free** is $0 with no card: $2 of usage every month, refilled, and up to 10 new datasheets a day (datasheets already read are unlimited). It stops at $2 rather than charging you.
+- **Pro** is $20 a month, all of it usage (about 1,000 datasheet answers): no daily cap on new datasheets, a private parts library, and list prices past $20 up to a spend cap you set.
+- **Team** is $60 a month of usage pooled across up to 10 people, with a shared private parts library.
 
 Plans, limits and fees: [sheetsdata.com/pricing](https://sheetsdata.com/pricing).
 

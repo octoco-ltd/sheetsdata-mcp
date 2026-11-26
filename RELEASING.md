@@ -48,6 +48,12 @@ npm run set-version -- X.Y.Z
 
 npm test
 npm run build-mcpb   # the same build CI and the release run
+
+# The hosted server is the source of truth for the tools, prompts,
+# resources and per-call prices the listings and README name. This
+# reads them from https://mcp.sheetsdata.com/mcp (no sign-in, no tool
+# calls) and lists every difference.
+npm run check-live
 ```
 
 Open a PR and merge it once CI is green. Then tag the merge commit:

@@ -35,6 +35,7 @@
     "check-versions": "node scripts/versions.mjs check",
     "set-version": "node scripts/versions.mjs set",
     "release-notes": "node scripts/release-notes.mjs",
+    "check-live": "node scripts/check-live.mjs",
     "build-mcpb": "./scripts/build-mcpb.sh"
   },
   "engines": {
