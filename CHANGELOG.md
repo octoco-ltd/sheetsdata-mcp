@@ -11,6 +11,19 @@ Each release's section becomes its GitHub Release notes (see
 
 ## [Unreleased]
 
+### Changed
+
+- **mcp-remote 0.17.1** (from 0.1.38) runs in `npx @sheetsdata/mcp`
+  and the Claude Desktop bundle. After the handshake it sends the
+  negotiated `MCP-Protocol-Version` header on every request, as
+  Streamable HTTP has required since protocol 2025-06-18, and its
+  locked dependencies (undici, express) move to current patch
+  releases. It still forwards the client's own `initialize`. Its
+  `--protocol auto` mode for 2026-07-28 servers stays off: the hosted
+  server speaks 2025-11-25 and answers that mode's probe with 401,
+  which would send every start without a cached token to a browser
+  sign-in, even just to list tools.
+
 ### Fixed
 
 - **Node.js requirement.** `npx @sheetsdata/mcp` needs Node.js 20.18.1

@@ -29,9 +29,9 @@
  *  - The API key never appears on the child's command line, where it
  *    would be visible to other local users via `ps`. Instead it's
  *    passed through mcp-remote's own `${ENV_VAR}` header-
- *    interpolation support (confirmed in the pinned 0.1.38's source:
- *    it replaces `${NAME}` in `--header` values with `process.env`
- *    at startup): the literal string `${SHEETSDATA_AUTH_HEADER}`
+ *    interpolation support (documented in its README: it replaces
+ *    `${NAME}` in `--header` values with `process.env` at startup):
+ *    the literal string `${SHEETSDATA_AUTH_HEADER}`
  *    goes on argv, and the real `Bearer <key>` value travels only via
  *    the child's environment. mcp-remote's README documents this
  *    same form as the workaround for a Cursor/Claude-Desktop
@@ -51,30 +51,27 @@ const MCP_URL = "https://mcp.sheetsdata.com/mcp";
 // resolution through node_modules behaves like any pre-"exports"
 // package: `require.resolve` walks the real dependency tree starting
 // from *this* file, which is exactly what we want — it never
-// consults the caller's cwd the way `npx` does.
-const MCP_REMOTE_CANDIDATES = ["mcp-remote/dist/proxy.js", "mcp-remote/dist/index.js"];
+// consults the caller's cwd the way `npx` does. The path is the one
+// mcp-remote's `bin` declares; test/cli.test.js checks that against
+// the installed version, so a rename upstream fails CI rather than
+// shipping.
+const MCP_REMOTE_ENTRY = "mcp-remote/dist/proxy.js";
 
 /**
  * Resolve mcp-remote's CLI entry point from our own dependency tree.
- * Tries `dist/proxy.js` (the documented `bin` target as of 0.1.38)
- * first, then falls back to `dist/index.js` — the same fallback
- * bundle/index.js uses for the DXT bundle, in case a future pinned
- * version ships its CLI under a different filename. Returns `null`
- * if neither resolves (e.g. `npm install` was never run).
+ * Returns `null` if it doesn't resolve (e.g. `npm install` was never
+ * run).
  *
  * `requireFn` is injected so this is unit-testable without touching
  * a real mcp-remote install — see test/cli.test.js.
  */
 export function resolveMcpRemoteEntry(requireFn = createRequire(import.meta.url)) {
-  for (const specifier of MCP_REMOTE_CANDIDATES) {
-    try {
-      return requireFn.resolve(specifier);
-    } catch (err) {
-      if (err?.code !== "MODULE_NOT_FOUND") throw err;
-      // else: try the next candidate
-    }
+  try {
+    return requireFn.resolve(MCP_REMOTE_ENTRY);
+  } catch (err) {
+    if (err?.code === "MODULE_NOT_FOUND") return null;
+    throw err;
   }
-  return null;
 }
 
 /**
@@ -88,12 +85,18 @@ export function resolveMcpRemoteEntry(requireFn = createRequire(import.meta.url)
 export function buildProxyInvocation({ mcpRemoteEntry, apiKey, url = MCP_URL }) {
   if (!mcpRemoteEntry) {
     throw new Error(
-      "mcp-remote is not installed (resolveMcpRemoteEntry found neither " +
-        "dist/proxy.js nor dist/index.js). Run `npm install` in this " +
-        "package, or reinstall @sheetsdata/mcp."
+      `mcp-remote is not installed (${MCP_REMOTE_ENTRY} did not resolve). ` +
+        "Run `npm install` in this package, or reinstall @sheetsdata/mcp."
     );
   }
 
+  // No `--protocol auto`: the hosted server still speaks 2025-11-25 and
+  // answers that mode's `server/discover` probe with 401, which
+  // mcp-remote takes as a request to sign in. Every start without a
+  // cached token would then wait on a browser sign-in, even to list
+  // tools, which the server serves without one (directory scanners
+  // start this package with no credentials). The default, `legacy`,
+  // forwards the client's own `initialize` unchanged.
   const args = [mcpRemoteEntry, url];
   const env = {};
 

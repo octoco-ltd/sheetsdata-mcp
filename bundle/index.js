@@ -33,18 +33,13 @@ const MCP_URL = "https://mcp.sheetsdata.com/mcp";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// mcp-remote ships its main entry at dist/proxy.js. Some 0.x releases
-// have shipped it at dist/index.js — fall back if proxy.js is missing.
-const candidates = [
-  join(__dirname, "node_modules", "mcp-remote", "dist", "proxy.js"),
-  join(__dirname, "node_modules", "mcp-remote", "dist", "index.js"),
-];
-const mcpRemoteEntry = candidates.find((p) => existsSync(p));
-if (!mcpRemoteEntry) {
+// mcp-remote's CLI, as its package.json `bin` declares it (checked in
+// test/cli.test.js; the bundle pins the same version as the CLI).
+const mcpRemoteEntry = join(__dirname, "node_modules", "mcp-remote", "dist", "proxy.js");
+if (!existsSync(mcpRemoteEntry)) {
   console.error(
-    "Bundled mcp-remote not found. Tried:\n  " +
-      candidates.join("\n  ") +
-      "\nPlease reinstall the SheetsData extension."
+    `Bundled mcp-remote not found at ${mcpRemoteEntry}.\n` +
+      "Please reinstall the SheetsData extension."
   );
   process.exit(1);
 }

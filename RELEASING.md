@@ -92,7 +92,8 @@ The release page should list `sheetsdata-X.Y.Z.mcpb`.
   `dependencies.mcp-remote` in `package.json` and `bundle/package.json`
   together, then run `npm install` at the root and in `bundle/` to
   update both lockfiles. `npm run check-versions` fails if the two pins
-  differ.
+  differ, and `test/proxy.test.js` runs the new version against a local
+  server that answers as the hosted one does.
 - **mcpb** (the bundle packer): `npm install --save-dev --save-exact
   @anthropic-ai/mcpb@<version>`.
 - **mcp-publisher**: set `MCP_PUBLISHER_VERSION` in `release.yml` and
