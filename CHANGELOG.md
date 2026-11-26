@@ -28,6 +28,10 @@ Each release's section becomes its GitHub Release notes (see
   `prefetch_datasheets` are free, the upload fee is 10¢, and
   `check_bom` takes up to 50 lines. The README's plans are the current
   Free, Pro and Team.
+- **MCP Registry entry.** `server.json` declares the optional
+  `Authorization` header on the hosted server, so registry clients can
+  offer an API key next to OAuth, and drops the `capabilities` block,
+  which the registry discards.
 
 ### Fixed
 
