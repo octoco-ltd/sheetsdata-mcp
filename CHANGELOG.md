@@ -32,6 +32,8 @@ Each release's section becomes its GitHub Release notes (see
   `Authorization` header on the hosted server, so registry clients can
   offer an API key next to OAuth, and drops the `capabilities` block,
   which the registry discards.
+- **The README's SDK example** uses the TypeScript SDK v2 client,
+  `@modelcontextprotocol/client`.
 
 ### Fixed
 

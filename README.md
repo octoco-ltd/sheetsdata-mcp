@@ -121,6 +121,8 @@ Use whichever your client supports; both bill the same organisation.
 
 If a client asks how to register an OAuth client, choose automatic (dynamic) registration; SheetsData doesn't support client ID metadata documents yet.
 
+With the `@sheetsdata/mcp` proxy or the Claude Desktop bundle, a browser tab that opens even though you set an API key means the key was rejected, and the proxy fell back to OAuth. Check the key, or create a new one, at [sheetsdata.com/dashboard/keys](https://sheetsdata.com/dashboard/keys).
+
 ## Install
 
 One-click installs (sign in on first use):
@@ -620,11 +622,10 @@ From a shell: `SHEETSDATA_API_KEY=YOUR_API_KEY npx -y @sheetsdata/mcp`, or `npx 
 
 ### Your own code
 
-Connect with the [MCP TypeScript SDK](https://modelcontextprotocol.io/docs/sdk) over Streamable HTTP (the SDK can also run the OAuth flow):
+Connect with the [MCP TypeScript SDK](https://ts.sdk.modelcontextprotocol.io/v2/) (`npm install @modelcontextprotocol/client`) over Streamable HTTP. The SDK can also run the OAuth flow; listing tools needs no sign-in.
 
 ```ts
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 
 const transport = new StreamableHTTPClientTransport(new URL("https://mcp.sheetsdata.com/mcp"), {
   requestInit: { headers: { Authorization: "Bearer YOUR_API_KEY" } },
