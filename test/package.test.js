@@ -30,6 +30,31 @@ test("mcpName matches server.json: the MCP Registry rejects the entry otherwise"
   assert.equal(readJson("server.json").packages[0].identifier, readJson("package.json").name);
 });
 
+// The MCP Registry stores only the fields its schema defines and drops
+// the rest without an error, so a field outside it (server.json once
+// carried a "capabilities" block) is metadata no client ever sees.
+// These are the ServerDetail properties of the schema $schema names.
+test("server.json uses only fields of its registry schema", () => {
+  const server = readJson("server.json");
+  assert.equal(server.$schema, "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json");
+  const known = ["$schema", "_meta", "description", "icons", "name", "packages", "remotes", "repository", "title", "version", "websiteUrl"];
+  assert.deepEqual(Object.keys(server).filter((key) => !known.includes(key)), []);
+  assert.ok(server.description.length <= 100, "the registry rejects a description over 100 characters");
+});
+
+test("the registry entry keeps OAuth first: an API key is optional on every channel", () => {
+  const server = readJson("server.json");
+  const inputs = [
+    ...server.packages.flatMap((p) => p.environmentVariables ?? []),
+    ...server.remotes.flatMap((r) => r.headers ?? []),
+  ];
+  assert.deepEqual(inputs.map((i) => i.name).sort(), ["Authorization", "SHEETSDATA_API_KEY"]);
+  for (const input of inputs) {
+    assert.equal(input.isRequired, false, `${input.name} must stay optional`);
+    assert.equal(input.isSecret, true, `${input.name} must be marked secret`);
+  }
+});
+
 test("the bin entry points at the shipped CLI, which has a node shebang", () => {
   const { bin } = readJson("package.json");
   assert.deepEqual(Object.keys(bin), ["sheetsdata-mcp"]);

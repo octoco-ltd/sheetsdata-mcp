@@ -47,12 +47,16 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://mcp.sheetsdata.com/mcp"
+      "url": "https://mcp.sheetsdata.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional. Leave unset to sign in with OAuth in your browser, or send an API key from https://sheetsdata.com/dashboard/keys as 'Bearer <key>'.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
     }
-  ],
-  "capabilities": {
-    "tools": true,
-    "prompts": true,
-    "resources": true
-  }
+  ]
 }

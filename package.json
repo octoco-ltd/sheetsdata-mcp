@@ -35,13 +35,14 @@
     "check-versions": "node scripts/versions.mjs check",
     "set-version": "node scripts/versions.mjs set",
     "release-notes": "node scripts/release-notes.mjs",
+    "check-live": "node scripts/check-live.mjs",
     "build-mcpb": "./scripts/build-mcpb.sh"
   },
   "engines": {
     "node": ">=20.18.1"
   },
   "dependencies": {
-    "mcp-remote": "0.1.38"
+    "mcp-remote": "0.17.1"
   },
   "devDependencies": {
     "@anthropic-ai/mcpb": "2.1.2"

@@ -5,7 +5,7 @@
   "display_name": "SheetsData",
   "version": "1.4.0",
   "description": "Electronic component datasheets for AI agents — pinouts, specs, package info and design checks from manufacturer PDFs.",
-  "long_description": "SheetsData gives AI agents structured access to electronic component data extracted from manufacturer datasheets: find parts by number or by spec, read any datasheet section as text and tables, compare parts, check a BOM, and check operating conditions against the absolute maximum and recommended ratings.\n\nThis bundle proxies stdio to Streamable HTTP so that Claude Desktop can connect to the hosted SheetsData MCP server at https://mcp.sheetsdata.com/mcp. Leave the API key blank to sign in with OAuth in your browser.\n\nSearching is free; other calls cost cents and come out of a prepaid balance. A new account starts with $5 of credit, no card needed. Prices: https://sheetsdata.com/pricing",
+  "long_description": "SheetsData gives AI agents structured access to electronic component data extracted from manufacturer datasheets: find parts by number or by spec, read any datasheet section as text and tables, compare parts, check a BOM, and check operating conditions against the absolute maximum and recommended ratings.\n\nThis bundle proxies stdio to Streamable HTTP so that Claude Desktop can connect to the hosted SheetsData MCP server at https://mcp.sheetsdata.com/mcp. Leave the API key blank to sign in with OAuth in your browser.\n\nFinding parts is free; a datasheet answer is 2¢ and an AI check 5¢. The Free plan includes $2 of usage every month, no card needed. Prices: https://sheetsdata.com/pricing",
   "author": {
     "name": "Octoco Ltd",
     "url": "https://sheetsdata.com",
@@ -81,7 +81,7 @@
     },
     {
       "name": "check_bom",
-      "description": "Check up to 20 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices."
+      "description": "Check up to 50 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices."
     },
     {
       "name": "prefetch_datasheets",

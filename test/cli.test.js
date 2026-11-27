@@ -8,7 +8,8 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, test } from "node:test";
@@ -89,20 +90,6 @@ test("resolveMcpRemoteEntry: resolves dist/proxy.js when present", () => {
   assert.equal(resolveMcpRemoteEntry(fakeRequire), "/fake/node_modules/mcp-remote/dist/proxy.js");
 });
 
-test("resolveMcpRemoteEntry: falls back to dist/index.js when proxy.js is missing", () => {
-  const fakeRequire = {
-    resolve(specifier) {
-      if (specifier === "mcp-remote/dist/index.js") {
-        return "/fake/node_modules/mcp-remote/dist/index.js";
-      }
-      const err = new Error(`Cannot find module '${specifier}'`);
-      err.code = "MODULE_NOT_FOUND";
-      throw err;
-    },
-  };
-  assert.equal(resolveMcpRemoteEntry(fakeRequire), "/fake/node_modules/mcp-remote/dist/index.js");
-});
-
 test("resolveMcpRemoteEntry: returns null when mcp-remote isn't installed at all", () => {
   const fakeRequire = {
     resolve(specifier) {
@@ -130,10 +117,18 @@ test("resolveMcpRemoteEntry: resolves the real, installed mcp-remote dependency"
   // instead of only failing at runtime for end users.
   const entry = resolveMcpRemoteEntry();
   assert.ok(entry, "expected mcp-remote to resolve from node_modules — did you run `npm ci`?");
-  assert.ok(
-    entry.endsWith("proxy.js") || entry.endsWith("index.js"),
-    `unexpected resolved entry: ${entry}`
-  );
+  assert.ok(entry.endsWith(join("mcp-remote", "dist", "proxy.js")), `unexpected resolved entry: ${entry}`);
+});
+
+test("the pinned mcp-remote declares dist/proxy.js as its CLI, the file both entry points run", () => {
+  // bin/cli.js and bundle/index.js run this path directly rather than
+  // through npx, so an upstream rename must fail here, not for users.
+  // (test/signals.test.js runs bundle/index.js against that layout.)
+  const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const require = createRequire(import.meta.url);
+  const manifest = JSON.parse(readFileSync(require.resolve("mcp-remote/package.json"), "utf8"));
+  assert.equal(manifest.version, JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8")).dependencies["mcp-remote"]);
+  assert.equal(manifest.bin?.["mcp-remote"], "dist/proxy.js");
 });
 
 test("exitStatusFor: mcp-remote's exit code passes through unchanged", () => {

@@ -30,7 +30,7 @@
     },
     {
       "name": "check_bom",
-      "description": "Check up to 20 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices."
+      "description": "Check up to 50 BOM lines for lifecycle, stock against quantity, single-distributor sourcing, datasheet status and stale prices."
     },
     {
       "name": "prefetch_datasheets",
